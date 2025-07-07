@@ -4,6 +4,8 @@
     <TargetFramework>net7.0</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <OutputPath>bin\$(Configuration)\Mods\mod</OutputPath>
+	<ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+	<ResolveAssemblyReferencesSilentConflict>true</ResolveAssemblyReferencesSilentConflict>
   </PropertyGroup>
 
   <ItemGroup>
@@ -60,5 +62,4 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </Content>
 </ItemGroup>
-
 </Project>
