@@ -1,6 +1,23 @@
 {
-  "Data": {
-    "log-resin-*": [
+  "presets": {
+    "meteric-iron": {
+      "enabled": true,
+      "mask": "meteorite-iron",
+      "particles": "meteorite-particles"
+    },
+    "resin": {
+      "enabled": true,
+      "mask": "log-resin-*",
+      "particles": "resin-drips"
+    },
+    "soils": {
+      "enabled": true,
+      "mask": "@soil-(high|compost)-(.*)",
+      "particles": "soil-smoke"
+    }
+  },
+  "particles": {
+    "resin-drips": [
       {
         "HsvaColor": [
           {
@@ -458,7 +475,7 @@
         "WindAffectednes": 0.01
       }
     ],
-    "@soil-(high|compost)-(.*)": [
+    "soil-smoke": [
       {
         "HsvaColor": [
           {
@@ -578,7 +595,7 @@
         "WindAffectednes": 1.0
       }
     ],
-    "meteorite-iron": [
+    "meteorite-particles": [
       {
         "HsvaColor": [
           {
