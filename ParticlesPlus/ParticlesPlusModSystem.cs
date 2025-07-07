@@ -23,6 +23,7 @@ namespace ParticlesPlus
     public class ParticlesPlusModSystem : ModSystem
     {
         public static ModConfig LoadedConfig { get; private set; }
+        private bool configValid = true;
         GuiDialog dialog;
 
         public override bool ShouldLoad(EnumAppSide forSide)
@@ -32,16 +33,12 @@ namespace ParticlesPlus
         public override void StartClientSide(ICoreClientAPI api)
         {
             base.StartClientSide(api);
+            
             string configFileName = $"{Mod.Info.ModID}.json";
 
             try
             {
                 LoadedConfig = api.LoadModConfig<ModConfig>(configFileName);
-                if (LoadedConfig.Version == 0)
-                {
-                    api.Logger.Error($"[{Mod.Info.Name}] Config file is missing required 'Version' field (old or malformed config). Please regenerate or update it.");
-                    return;
-                }
                 if (LoadedConfig == null)
                 {
                     // Load embedded default config from mod assets
@@ -54,24 +51,32 @@ namespace ParticlesPlus
                     // Save to mod config folder for future editing
                     api.StoreModConfig(LoadedConfig, configFileName);
                 }
+                else if (LoadedConfig.Version == 0)
+                {
+                    api.Logger.Error($"[{Mod.Info.Name}] Config file is missing required 'Version' field (old or malformed config). Please regenerate or update it.");
+                    configValid = false;
+                    return;
+                }
             }
             catch (Exception e)
             {
                 api.Logger.Error($"[{Mod.Info.Name}] Failed to load config file: {e.Message}");
+                configValid = false;
+                return;
             }
-            finally
-            {
                 dialog = new MainGuiDialog(api, LoadedConfig);
-            }
         }
         public override void AssetsFinalize(ICoreAPI api)
         {
+            if (!configValid) return;
             if (LoadedConfig != null && LoadedConfig.Presets != null && LoadedConfig.Particles != null)
             {
                 foreach (Block block in api.World.Blocks)
                 {
                     foreach (var preset in LoadedConfig.Presets)
                     {
+                        if (!preset.Value.Enabled) continue; // Skip if disabled
+
                         if (block.WildCardMatch(preset.Value.Mask))
                         {
                             if (LoadedConfig.Particles.TryGetValue(preset.Value.Particles, out var particles))
