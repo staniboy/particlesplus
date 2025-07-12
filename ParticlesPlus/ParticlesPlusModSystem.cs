@@ -23,6 +23,7 @@ namespace ParticlesPlus
     public class ParticlesPlusModSystem : ModSystem
     {
         public static ModConfig LoadedConfig { get; private set; }
+        private string configFileName;
         private bool configValid = true;
         GuiDialog dialog;
 
@@ -33,9 +34,7 @@ namespace ParticlesPlus
         public override void StartClientSide(ICoreClientAPI api)
         {
             base.StartClientSide(api);
-            
-            string configFileName = $"{Mod.Info.ModID}.json";
-
+            configFileName = $"{Mod.Info.ModID}.json";
             try
             {
                 LoadedConfig = api.LoadModConfig<ModConfig>(configFileName);
@@ -49,7 +48,7 @@ namespace ParticlesPlus
                     LoadedConfig = JsonConvert.DeserializeObject<ModConfig>(defaultConfigText);
 
                     // Save to mod config folder for future editing
-                    api.StoreModConfig(LoadedConfig, configFileName);
+                    WriteConfig(api);
                 }
                 else if (LoadedConfig.Version == 0)
                 {
@@ -64,7 +63,7 @@ namespace ParticlesPlus
                 configValid = false;
                 return;
             }
-                dialog = new MainGuiDialog(api, LoadedConfig);
+                dialog = new MainGuiDialog(api, LoadedConfig, this);
         }
         public override void AssetsFinalize(ICoreAPI api)
         {
@@ -98,6 +97,10 @@ namespace ParticlesPlus
                 }
             }
             api.Logger.Event($"Started [{Mod.Info.Name}] mod");
+        }
+        public void WriteConfig(ICoreClientAPI capi)
+        {
+            capi.StoreModConfig(LoadedConfig, configFileName);
         }
     }
  
