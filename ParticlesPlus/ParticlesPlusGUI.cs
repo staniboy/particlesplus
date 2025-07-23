@@ -215,7 +215,7 @@ namespace ParticlesPlus
             return true;
             
         }
-        private bool OnDelete() //TODO: Make this work.
+        private bool OnDelete()
         {
             GuiElementDropDown presetDropdown = SingleComposer.GetDropDown("presetDropdown");
             string keyToDelete = presetDropdown.SelectedValue;
