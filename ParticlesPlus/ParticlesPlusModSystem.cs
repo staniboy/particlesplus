@@ -10,6 +10,7 @@ namespace ParticlesPlus
     public class ModConfig
     {
         public int Version { get; set; }
+        public bool Global { get; set; } = true;
         public Dictionary<string, PresetConfig> Presets { get; set; } = new();
         public Dictionary<string, AdvancedParticleProperties[]> Particles { get; set; } = new();
     }
@@ -25,6 +26,7 @@ namespace ParticlesPlus
         public static ModConfig LoadedConfig { get; private set; }
         private string configFileName;
         private bool configValid = true;
+        private ICoreClientAPI capi;
         GuiDialog dialog;
 
         public override bool ShouldLoad(EnumAppSide forSide)
@@ -34,6 +36,7 @@ namespace ParticlesPlus
         public override void StartClientSide(ICoreClientAPI api)
         {
             base.StartClientSide(api);
+            this.capi = api;
             configFileName = $"{Mod.Info.ModID}.json";
             try
             {
@@ -48,7 +51,7 @@ namespace ParticlesPlus
                     LoadedConfig = JsonConvert.DeserializeObject<ModConfig>(defaultConfigText);
 
                     // Save to mod config folder for future editing
-                    WriteConfig(api);
+                    WriteConfig();
                 }
                 else if (LoadedConfig.Version == 0)
                 {
@@ -63,67 +66,110 @@ namespace ParticlesPlus
                 configValid = false;
                 return;
             }
-                dialog = new MainGuiDialog(api, LoadedConfig, this);
+            dialog = new MainGuiDialog(api, LoadedConfig, this);   
+            api.Input.RegisterHotKey(
+                    "toggleParticles",
+                    "My Hotkey Description",
+                    GlKeys.P,
+                    HotkeyType.GUIOrOtherControls,         
+                    shiftPressed: false,
+                    ctrlPressed: true,
+                    altPressed: false
+                    );
+            api.Input.SetHotKeyHandler("toggleParticles", OnToggleParticles);
         }
         public override void AssetsFinalize(ICoreAPI api)
         {
             if (!configValid) return;
             if (LoadedConfig != null && LoadedConfig.Presets != null && LoadedConfig.Particles != null)
             {
-                foreach (Block block in api.World.Blocks)
-                {
-                    foreach (var preset in LoadedConfig.Presets)
-                    {
-                        if (!preset.Value.Enabled) continue; // Skip if disabled
-
-                        if (block.WildCardMatch(preset.Value.Wildcard))
-                        {
-                            if (LoadedConfig.Particles.TryGetValue(preset.Value.Particles, out var particles))
-                            {
-                                // Initialize if null
-                                block.ParticleProperties ??= Array.Empty<AdvancedParticleProperties>();
-
-                                // Append particles (creates new array)
-                                block.ParticleProperties = block.ParticleProperties
-                                    .Concat(particles)
-                                    .ToArray();
-                            }
-                            else
-                            {
-                                api.Logger.Warning($"[{Mod.Info.Name}] No particles found for key '{preset.Value.Particles}' in config.");
-                            }
-                        }
-                    }
-                }
+                ApplyConfigPresets(LoadedConfig);
             }
+
             api.Logger.Event($"Started [{Mod.Info.Name}] mod");
         }
-        public void WriteConfig(ICoreClientAPI capi)
+        public void WriteConfig()
         {
             capi.StoreModConfig(LoadedConfig, configFileName);
         }
-        private Block[] GetBlocks(ICoreClientAPI api, string wildcard)
+        private Block[] GetBlocks(string wildcard)
         {
-            return api.World.SearchBlocks(wildcard);
+            return capi.World.SearchBlocks(wildcard);
         }
-        public void RemoveParticles(ICoreClientAPI api, string wildcard)
+        public void RemoveParticles(string wildcard)
         {
-            Block[] blocks = GetBlocks(api, wildcard);
-            foreach (Block block in blocks)
+            if (LoadedConfig.Global)
             {
-                block.ParticleProperties = Array.Empty<AdvancedParticleProperties>();
+                Block[] blocks = GetBlocks(wildcard);
+                foreach (Block block in blocks)
+                {
+                    block.ParticleProperties = Array.Empty<AdvancedParticleProperties>();
+                }
             }
         }
-        public void AddParticles(ICoreClientAPI api, string wildcard, AdvancedParticleProperties[] particles)
+        public void AddParticles(string wildcard, AdvancedParticleProperties[] particles)
         {
-            Block[] blocks = GetBlocks(api, wildcard);
-            foreach (Block block in blocks)
+            if (LoadedConfig.Global) 
             {
-                block.ParticleProperties ??= Array.Empty<AdvancedParticleProperties>();
-                block.ParticleProperties = block.ParticleProperties
-                                .Concat(particles)
-                                .ToArray();
+                Block[] blocks = GetBlocks(wildcard);
+                foreach (Block block in blocks)
+                {
+                    block.ParticleProperties ??= Array.Empty<AdvancedParticleProperties>();
+                    block.ParticleProperties = block.ParticleProperties
+                                    .Concat(particles)
+                                    .ToArray();
+                }
             }
+        }
+
+        private bool OnToggleParticles(KeyCombination keyComb)
+        {
+            if (LoadedConfig.Global)
+            {
+                RemoveConfigPresets(LoadedConfig);
+                LoadedConfig.Global = false;
+                WriteConfig();
+            }
+            else
+            {
+                LoadedConfig.Global = true;
+                ApplyConfigPresets(LoadedConfig);
+                WriteConfig();
+            }
+            return true;
+        }
+
+        private void ApplyConfigPresets(ModConfig config)
+        {
+            foreach (var preset in config.Presets)
+            {
+                if (!preset.Value.Enabled) continue; // Skip if disabled
+
+                Block[] blocks = GetBlocks(preset.Value.Wildcard);
+                AdvancedParticleProperties[] particles = GetParticles(preset.Value.Particles);
+
+                AddParticles(preset.Value.Wildcard, particles);
+            }
+        }
+
+        private void RemoveConfigPresets(ModConfig config)
+        {
+            foreach (var preset in config.Presets)
+            {
+                if (!preset.Value.Enabled) continue; // Skip if disabled
+
+                Block[] blocks = GetBlocks(preset.Value.Wildcard);
+                AdvancedParticleProperties[] particles = GetParticles(preset.Value.Particles);
+
+                RemoveParticles(preset.Value.Wildcard);
+            }
+        }
+
+        private AdvancedParticleProperties[] GetParticles(string particlesKey)
+        {
+            return LoadedConfig.Particles.TryGetValue(particlesKey, out var particles)
+                ? particles
+                : Array.Empty<AdvancedParticleProperties>();
         }
     }
  

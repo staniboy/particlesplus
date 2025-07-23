@@ -193,25 +193,25 @@ namespace ParticlesPlus
             {
                 if (selectedPreset.Wildcard != wildcard || selectedPreset.Particles != particles)
                 {
-                    modSystem.RemoveParticles(capi, selectedPreset.Wildcard);
-                    modSystem.AddParticles(capi, wildcard, modConfig.Particles[particles]);
+                    modSystem.RemoveParticles(selectedPreset.Wildcard);
+                    modSystem.AddParticles(wildcard, modConfig.Particles[particles]); 
                 }
             }
 
             if (selectedPreset.Enabled && !enabled)
             {
-                modSystem.RemoveParticles(capi, wildcard);
+                modSystem.RemoveParticles(wildcard);
             }
 
             if (!selectedPreset.Enabled && enabled)
             {
-                modSystem.AddParticles(capi, wildcard, modConfig.Particles[particles]);
+                modSystem.AddParticles(wildcard, modConfig.Particles[particles]);
             }
 
             selectedPreset.Particles = particles;
             selectedPreset.Wildcard = wildcard;
             selectedPreset.Enabled = enabled;
-            modSystem.WriteConfig(capi);
+            modSystem.WriteConfig();
             return true;
             
         }
@@ -226,7 +226,7 @@ namespace ParticlesPlus
             }
 
             // Remove key particles
-            modSystem.RemoveParticles(capi, modConfig.Presets[keyToDelete].Wildcard);
+            modSystem.RemoveParticles(modConfig.Presets[keyToDelete].Wildcard);
             // Remove Key
             modConfig.Presets.Remove(keyToDelete);
             // Update Presets List for Dropdown
@@ -236,7 +236,7 @@ namespace ParticlesPlus
             // Set form to first element in updated list if empty reset form.
             OnPresetSelection(presetNames[0], true);
 
-            modSystem.WriteConfig(capi);
+            modSystem.WriteConfig();
             return true;
         }
         private void UpdatePresetDropdownList(GuiElementDropDown presetDropdown)
