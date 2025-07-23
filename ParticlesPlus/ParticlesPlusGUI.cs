@@ -29,10 +29,11 @@ namespace ParticlesPlus
             int spacing = 10;
             int centeredLabelY = dropdownHeight / 2 - labelHeight / 2;
 
+            ElementBounds globalSwitchBounds = ElementBounds.Fixed(260, 8, 25, 25);
 
             // Auto-sized dialog at the center of the screen
-            ElementBounds dialogBounds = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.CenterMiddle);
-
+            ElementBounds dialogBounds = ElementStdBounds.AutosizedMainDialog
+                .WithAlignment(EnumDialogArea.CenterMiddle);
             // Key Input
             ElementBounds keyInputLabelBounds = ElementBounds.Fixed(0, GuiStyle.TitleBarHeight, elementWidth, labelHeight);
             ElementBounds keyInputBounds = ElementBounds.Fixed(0, 0, elementWidth, dropdownHeight).FixedUnder(keyInputLabelBounds, spacing);
@@ -84,10 +85,10 @@ namespace ParticlesPlus
                 deleteButtonBounds
                 );
 
-            // Lastly, create the dialog
             SingleComposer = capi.Gui.CreateCompo("ppMainDialog", dialogBounds)
                 .AddShadedDialogBG(bgBounds)
                 .AddDialogTitleBar("Particles Plus Configuration", OnTitleBarCloseClicked)
+                .AddSwitch(onGlobalSwitch, globalSwitchBounds, "globalSwitch", 18)
                 .AddStaticText("Preset:", CairoFont.WhiteSmallText(), presetDropdownLabelBounds)
                 .AddDropDown(GetPresetNames(), GetPresetNames(), 0, OnPresetSelection, presetDropdownBounds, "presetDropdown")
                 .AddButton("Add New", OnAddNew, addNewButtonBounds)
@@ -101,9 +102,9 @@ namespace ParticlesPlus
                 .AddStaticText("Enabled", CairoFont.WhiteSmallText(), switchLabelBounds)
                 .AddButton("Save", OnSave, saveButtonBounds)
                 .AddButton("Delete", OnDelete, deleteButtonBounds)
-
                 .Compose();
 
+            SingleComposer.GetSwitch("globalSwitch").SetValue(modConfig.Global);
             OnPresetSelection(GetPresetNames()[0], true);
         }
 
@@ -233,6 +234,10 @@ namespace ParticlesPlus
         {
             string[] presetNames = GetPresetNames();
             presetDropdown.SetList(presetNames, presetNames);
+        }
+        private void onGlobalSwitch(bool enabled)
+        {
+            modSystem.ToggleParticles(!enabled);
         }
     } 
 }

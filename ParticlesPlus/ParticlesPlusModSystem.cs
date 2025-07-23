@@ -76,7 +76,7 @@ namespace ParticlesPlus
                     ctrlPressed: true,
                     altPressed: false
                     );
-            api.Input.SetHotKeyHandler("toggleParticles", OnToggleParticles);
+            api.Input.SetHotKeyHandler("toggleParticles", OnHotkeyToggleParticles);
         }
         public override void AssetsFinalize(ICoreAPI api)
         {
@@ -122,9 +122,17 @@ namespace ParticlesPlus
             }
         }
 
-        private bool OnToggleParticles(KeyCombination keyComb)
+        private bool OnHotkeyToggleParticles(KeyCombination keyComb)
         {
-            if (LoadedConfig.Global)
+            GuiElementSwitch globalSwitch = dialog.Composers["single"].GetSwitch("globalSwitch");
+            ToggleParticles(LoadedConfig.Global);
+            globalSwitch.SetValue(LoadedConfig.Global);
+            return true;
+        }
+
+        public void ToggleParticles(bool enabled)
+        {
+            if (enabled)
             {
                 RemoveConfigPresets(LoadedConfig);
                 LoadedConfig.Global = false;
@@ -136,8 +144,6 @@ namespace ParticlesPlus
                 ApplyConfigPresets(LoadedConfig);
                 WriteConfig();
             }
-            return true;
-
         }
 
         private void ApplyConfigPresets(ModConfig config)
