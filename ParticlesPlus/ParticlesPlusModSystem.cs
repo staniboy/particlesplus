@@ -4,7 +4,6 @@ using Vintagestory.API.Common;
 using Newtonsoft.Json;
 using Vintagestory.API.Client;
 using System.Linq;
-using Vintagestory.API.Datastructures;
 
 namespace ParticlesPlus
 {

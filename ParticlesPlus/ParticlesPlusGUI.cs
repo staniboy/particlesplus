@@ -1,15 +1,5 @@
-﻿using HarmonyLib;
-using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
+﻿using System.Linq;
 using Vintagestory.API.Client;
-using Vintagestory.API.Common;
-using Vintagestory.Client;
-using static System.Runtime.CompilerServices.RuntimeHelpers;
-using System;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using System.Security.Cryptography.X509Certificates;
 
 namespace ParticlesPlus
 {
