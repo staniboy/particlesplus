@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Vintagestory.API.Common;
 using Newtonsoft.Json;
 using Vintagestory.API.Client;
