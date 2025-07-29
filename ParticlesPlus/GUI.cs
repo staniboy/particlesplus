@@ -88,7 +88,7 @@ namespace ParticlesPlus
             SingleComposer = capi.Gui.CreateCompo("ppMainDialog", dialogBounds)
                 .AddShadedDialogBG(bgBounds)
                 .AddDialogTitleBar("Particles Plus Configuration", OnTitleBarCloseClicked)
-                .AddSwitch(onGlobalSwitch, globalSwitchBounds, "globalSwitch", 18)
+                .AddSwitch(OnGlobalSwitch, globalSwitchBounds, "globalSwitch", 18)
                 .AddStaticText("Preset:", CairoFont.WhiteSmallText(), presetDropdownLabelBounds)
                 .AddDropDown(GetPresetNames(), GetPresetNames(), 0, OnPresetSelection, presetDropdownBounds, "presetDropdown")
                 .AddButton("Add New", OnAddNew, addNewButtonBounds)
@@ -107,7 +107,6 @@ namespace ParticlesPlus
             SingleComposer.GetSwitch("globalSwitch").SetValue(modConfig.Global);
             OnPresetSelection(GetPresetNames()[0], true);
         }
-
         private string[] GetPresetNames()
         {
             string[] presetNames = modConfig.Presets.Keys.ToArray();
@@ -235,7 +234,7 @@ namespace ParticlesPlus
             string[] presetNames = GetPresetNames();
             presetDropdown.SetList(presetNames, presetNames);
         }
-        private void onGlobalSwitch(bool enabled)
+        private void OnGlobalSwitch(bool enabled)
         {
             modSystem.ToggleParticles(!enabled);
         }
