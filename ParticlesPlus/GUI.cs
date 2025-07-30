@@ -175,9 +175,23 @@ namespace ParticlesPlus
             if (selectedPreset == null) return false;
 
             // string name = SingleComposer.GetTextInput("keyInput").Text;
-            string particles = SingleComposer.GetDropDown("particlesDropdown").SelectedValue;
-            string wildcard = SingleComposer.GetTextInput("wildcardInput").GetText();
-            bool enabled = SingleComposer.GetSwitch("enabledSwitch").On;
+            GuiElementDropDown presetDropdown = SingleComposer.GetDropDown("presetDropdown");
+            GuiElementDropDown particlesDropdown = SingleComposer.GetDropDown("particlesDropdown");
+            GuiElementTextInput wildcardInput = SingleComposer.GetTextInput("wildcardInput");
+            GuiElementSwitch enabledSwitch = SingleComposer.GetSwitch("enabledSwitch");
+
+            string preset = presetDropdown.SelectedValue;
+            string particles = particlesDropdown.SelectedValue;
+            int particlesIndex = particlesDropdown.SelectedIndices[0];
+            string wildcard = wildcardInput.GetText();
+            bool enabled = enabledSwitch.On;
+
+            if (!RegexValidator.IsValidRegex(wildcard))
+            {
+                OnPresetSelection(preset, true);
+                capi.ShowChatMessage("<font color=\"#880015\"><strong>[Particles Plus]: Invalid Regex</strong></font>");
+                return false;
+            }
 
             if (selectedPreset.Enabled && enabled)
             {
