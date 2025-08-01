@@ -9,6 +9,7 @@ namespace ParticlesPlus
         private readonly ModSystem modSystem;
         private readonly ModConfig modConfig;
         private PresetConfig selectedPreset;
+        private ChatMessanger chatMessanger;
 
         public MainGuiDialog(ICoreClientAPI capi, ModConfig config, ModSystem modSystem) : base(capi)
         {
@@ -18,7 +19,7 @@ namespace ParticlesPlus
             SetupDialog();
             capi.Gui.RegisterDialog(this);
             capi.Input.RegisterHotKey(ToggleKeyCombinationCode, "Particles Plus GUI", GlKeys.P, HotkeyType.GUIOrOtherControls);
-
+            chatMessanger = new ChatMessanger(capi, modSystem);
         }
         private void SetupDialog()
         {
@@ -119,7 +120,7 @@ namespace ParticlesPlus
         {
             return modConfig.Particles.Keys.ToArray();
         }
-        private void OnPresetSelection(string code, bool selected)
+        private void OnPresetSelection(string code, bool selected) // TODO: create a method for preset selection separate from control event handler
         {
             if (code == "<none>")
             {
@@ -150,24 +151,33 @@ namespace ParticlesPlus
         {
             GuiElementTextInput keyInput = SingleComposer.GetTextInput("keyInput");
             string newKeyName = keyInput.GetText();
-            if (!string.IsNullOrWhiteSpace(newKeyName))
-            {
-                if (!modConfig.Presets.ContainsKey(newKeyName))
-                {
-                    modConfig.Presets[newKeyName] = new PresetConfig
-                    {
-                        Enabled = false,
-                        Wildcard = "",
-                        Particles = null
-                    };
-                    GuiElementDropDown presetDropdown = SingleComposer.GetDropDown("presetDropdown");
-                    string[] presetNames = GetPresetNames();
-                    presetDropdown.SetList(presetNames, presetNames);
-                    OnPresetSelection(newKeyName, true);
-                }
-            }
-            keyInput.SetValue("");
 
+            if (string.IsNullOrWhiteSpace(newKeyName))
+            {
+                chatMessanger.ShowMessage(Constants.ChatMessages.EmptyNameError, MessageType.Error);
+                return false;
+            }
+
+            if (modConfig.Presets.ContainsKey(newKeyName))
+            {
+                chatMessanger.ShowMessage(Constants.ChatMessages.DuplicateNameError, MessageType.Error);
+                return false;
+            }
+
+            modConfig.Presets[newKeyName] = new PresetConfig
+            {
+                Enabled = false,
+                Wildcard = "",
+                Particles = null
+            };
+
+            GuiElementDropDown presetDropdown = SingleComposer.GetDropDown("presetDropdown");
+            string[] presetNames = GetPresetNames();
+            presetDropdown.SetList(presetNames, presetNames);
+            OnPresetSelection(newKeyName, true);
+          
+            keyInput.SetValue("");
+            chatMessanger.ShowMessage(Constants.ChatMessages.PresetAdded, MessageType.Success);
             return true;
         }
         private bool OnSave()
@@ -189,7 +199,7 @@ namespace ParticlesPlus
             if (!RegexValidator.IsValidRegex(wildcard))
             {
                 OnPresetSelection(preset, true);
-                capi.ShowChatMessage("<font color=\"#880015\"><strong>[Particles Plus]: Invalid Regex</strong></font>");
+                chatMessanger.ShowMessage(Constants.ChatMessages.RegexError, MessageType.Error);
                 return false;
             }
 
@@ -216,6 +226,7 @@ namespace ParticlesPlus
             selectedPreset.Wildcard = wildcard;
             selectedPreset.Enabled = enabled;
             modSystem.WriteConfig();
+            chatMessanger.ShowMessage(Constants.ChatMessages.PresetSaved, MessageType.Success);
             return true;
             
         }
@@ -241,6 +252,7 @@ namespace ParticlesPlus
             OnPresetSelection(presetNames[0], true);
 
             modSystem.WriteConfig();
+            chatMessanger.ShowMessage(Constants.ChatMessages.PresetRemoved, MessageType.Success);
             return true;
         }
         private void UpdatePresetDropdownList(GuiElementDropDown presetDropdown)
