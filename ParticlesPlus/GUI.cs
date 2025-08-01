@@ -9,7 +9,7 @@ namespace ParticlesPlus
         private readonly ModSystem modSystem;
         private readonly ModConfig modConfig;
         private PresetConfig selectedPreset;
-        private ChatMessanger chatMessanger;
+        private readonly ChatMessanger chatMessanger;
 
         public MainGuiDialog(ICoreClientAPI capi, ModConfig config, ModSystem modSystem) : base(capi)
         {
