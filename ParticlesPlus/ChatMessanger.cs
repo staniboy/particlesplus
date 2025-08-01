@@ -4,7 +4,7 @@ namespace ParticlesPlus
 {
     enum MessageType
     {
-        Fail,
+        Error,
         Success        
     }
     internal class ChatMessanger
@@ -24,16 +24,18 @@ namespace ParticlesPlus
             _modName = _modSystem.Mod.Info.Name;
         }
 
-        public void ShowMessage(string message, MessageType type)
+        public void ShowMessage(string messageBody, MessageType type)
         {
             string messageColor = type switch
             {
                 MessageType.Success => successColor,
-                MessageType.Fail => failColor,
+                MessageType.Error => failColor,
                 _ => "#FFFFFF",
             };
 
-            _capi.ShowChatMessage($"<font color='{messageColor}'>[{_modName}]{message}</font>");
+            string message = $"[{_modName}]: {messageBody}";
+
+            _capi.ShowChatMessage($"<strong><font color='{messageColor}'>{message}</font></strong>");
         }
     }
 }
