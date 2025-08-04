@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
+using Vintagestory.Client.NoObf;
 
 namespace ParticlesPlus
 {
@@ -95,6 +96,20 @@ namespace ParticlesPlus
             }
 
             Presets[key] = updatedPreset;
+            WriteConfig();
+
+            return true;
+        }
+
+        public bool RemovePreset(string key)
+        {
+            if (key == "<none>")
+            {
+                return false;
+            }
+
+            ParticlesManager.RemoveParticles(Presets[key].Wildcard);
+            Presets.Remove(key);
             WriteConfig();
 
             return true;
