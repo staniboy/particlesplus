@@ -10,16 +10,19 @@ namespace ParticlesPlus
         private readonly ModConfig modConfig;
         private PresetConfig selectedPreset;
         private readonly ChatMessanger chatMessanger;
+        private readonly ParticlesManager particlesManager;
 
-        public MainGuiDialog(ICoreClientAPI capi, ModConfig config, ModSystem modSystem) : base(capi)
+        public MainGuiDialog(ModSystem modSystem) : base(modSystem.capi)
         {
-            modConfig = config;
+            modConfig = modSystem.modConfig;
             this.modSystem = modSystem;
             selectedPreset = null;
+
+            chatMessanger = new ChatMessanger(capi, modSystem);
+
             SetupDialog();
             capi.Gui.RegisterDialog(this);
             capi.Input.RegisterHotKey(ToggleKeyCombinationCode, "Particles Plus GUI", GlKeys.P, HotkeyType.GUIOrOtherControls);
-            chatMessanger = new ChatMessanger(capi, modSystem);
         }
         private void SetupDialog()
         {
@@ -209,7 +212,7 @@ namespace ParticlesPlus
                 Wildcard = wildcard 
             };
 
-            modSystem.UpdateConfigPreset(preset, updatedPreset);
+            modConfig.UpdatePreset(preset, updatedPreset);
             chatMessanger.ShowMessage(Constants.ChatMessages.PresetSaved, MessageType.Success);
             return true;
             
@@ -225,7 +228,7 @@ namespace ParticlesPlus
             }
 
             // Remove key particles
-            modSystem.RemoveParticles(modConfig.Presets[keyToDelete].Wildcard);
+            particlesManager.RemoveParticles(modConfig.Presets[keyToDelete].Wildcard);
             // Remove Key
             modConfig.Presets.Remove(keyToDelete);
             // Update Presets List for Dropdown

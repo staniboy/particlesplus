@@ -20,26 +20,24 @@ namespace ParticlesPlus
         public Dictionary<string, PresetConfig> Presets { get; set; } = new();
         public Dictionary<string, AdvancedParticleProperties[]> Particles { get; set; } = new();
 
-        [JsonIgnore]
-        private readonly ICoreClientAPI capi;
-        [JsonIgnore]
-        public bool IsValid = true;
-        [JsonIgnore]
-        private readonly string configFileName;
+
+        private readonly ModSystem _modSystem;
+        private ParticlesManager ParticlesManager => _modSystem.particlesManager;
+        private ICoreClientAPI API => _modSystem.capi;
+        private string ConfigFileName => $"{_modSystem.Mod.Info.ModID}.json";
 
         public ModConfig() { }
-        public ModConfig(ICoreClientAPI capi, ModSystem modSystem)
+        public ModConfig(ModSystem modSystem)
         {
-            this.capi = capi;
+            _modSystem = modSystem;
 
-            configFileName = $"{modSystem.Mod.Info.ModID}.json";
             try
             {
-                var loadedConfig = capi.LoadModConfig<ModConfig>(configFileName);
+                var loadedConfig = API.LoadModConfig<ModConfig>(ConfigFileName);
 
                 if (loadedConfig == null)
                 {
-                    var defaultConfigAsset = capi.Assets.Get(new AssetLocation(modSystem.Mod.Info.ModID, "config/particlesplus.json"));
+                    var defaultConfigAsset = API.Assets.Get(new AssetLocation(modSystem.Mod.Info.ModID, "config/particlesplus.json"));
                     string defaultConfigText = defaultConfigAsset.ToText();
 
                     loadedConfig = JsonConvert.DeserializeObject<ModConfig>(defaultConfigText);
@@ -51,18 +49,18 @@ namespace ParticlesPlus
                 {
                     if (loadedConfig.Version == 0)
                     {
-                        capi.Logger.Error($"[{modSystem.Mod.Info.Name}] Config file is missing required 'Version' field (old or malformed config). Please regenerate or update it.");
-                        IsValid = false;
-                        return;
+                        string errorMsg = $"[{modSystem.Mod.Info.Name}] Config file is missing required 'Version' field (old or malformed config). Please regenerate or update it."; 
+                        API.Logger.Error(errorMsg);
+                        throw new InvalidOperationException(errorMsg);
                     }
                     CopyFrom(loadedConfig);
                 }
             }
             catch (Exception e)
             {
-                capi.Logger.Error($"[{modSystem.Mod.Info.Name}] Failed to load config file: {e.Message}");
-                IsValid = false;
-                return;
+                string errorMsg = $"[{modSystem.Mod.Info.Name}] Failed to load config file: {e.Message}";
+                API.Logger.Error(errorMsg);
+                throw new InvalidOperationException(errorMsg, e);
             }
         }
         private void CopyFrom(ModConfig modConfig)
@@ -74,9 +72,36 @@ namespace ParticlesPlus
             Presets = modConfig.Presets ?? new();
             Particles = modConfig.Particles ?? new();
         }
+        public bool UpdatePreset(string key, PresetConfig updatedPreset)
+        {
+            if (string.IsNullOrEmpty(key))
+                throw new ArgumentException("[Particles Plus]: Preset name cannot be null or empty", nameof(key));
+
+            if (!Presets.TryGetValue(key, out PresetConfig targetPreset))
+                return false;
+
+            if (targetPreset == updatedPreset)
+                return true;
+
+            if (targetPreset.Enabled)
+            {
+                ParticlesManager.RemoveParticles(targetPreset.Wildcard);
+            }
+
+            if (updatedPreset.Enabled && Global)
+            {
+
+                ParticlesManager.AddParticles(updatedPreset.Wildcard, updatedPreset.Particles);
+            }
+
+            Presets[key] = updatedPreset;
+            WriteConfig();
+
+            return true;
+        }
         public void WriteConfig()
         {
-            capi.StoreModConfig(this, configFileName);
+            API.StoreModConfig(this, ConfigFileName);
         }
     }
 }
