@@ -7,18 +7,15 @@ namespace ParticlesPlus
     {
         public override string ToggleKeyCombinationCode => "particlesplus";
         private readonly ModSystem modSystem;
-        private readonly ModConfig modConfig;
+        private ModConfig ModConfig => modSystem.ModConfig;
         private PresetConfig selectedPreset;
         private readonly ChatMessanger chatMessanger;
-        private readonly ParticlesManager particlesManager;
 
         public MainGuiDialog(ModSystem modSystem) : base(modSystem.capi)
         {
-            modConfig = modSystem.modConfig;
             this.modSystem = modSystem;
             selectedPreset = null;
-
-            chatMessanger = new ChatMessanger(capi, modSystem);
+            chatMessanger = new ChatMessanger(modSystem);
 
             SetupDialog();
             capi.Gui.RegisterDialog(this);
@@ -108,12 +105,12 @@ namespace ParticlesPlus
                 .AddButton("Delete", OnDelete, deleteButtonBounds)
                 .Compose();
 
-            SingleComposer.GetSwitch("globalSwitch").SetValue(modConfig.Global);
+            SingleComposer.GetSwitch("globalSwitch").SetValue(ModConfig.Global);
             OnPresetSelection(GetPresetNames()[0], true);
         }
         private string[] GetPresetNames()
         {
-            string[] presetNames = modConfig.Presets.Keys.ToArray();
+            string[] presetNames = ModConfig.Presets.Keys.ToArray();
 
             if (presetNames.Length == 0) return new string[] { "<none>" };
 
@@ -121,7 +118,7 @@ namespace ParticlesPlus
         }
         private string[] GetParticlesNames()
         {
-            return modConfig.Particles.Keys.ToArray();
+            return ModConfig.Particles.Keys.ToArray();
         }
         private void OnPresetSelection(string code, bool selected) // TODO: create a method for preset selection separate from control event handler
         {
@@ -132,7 +129,7 @@ namespace ParticlesPlus
             } 
             else
             {
-                selectedPreset = modConfig.Presets[code];
+                selectedPreset = ModConfig.Presets[code];
                 SingleComposer.GetDropDown("presetDropdown").SetSelectedValue(code);
                 SingleComposer.GetDropDown("particlesDropdown").SetSelectedValue(selectedPreset.Particles);
                 SingleComposer.GetSwitch("enabledSwitch").SetValue(selectedPreset.Enabled);
@@ -161,13 +158,13 @@ namespace ParticlesPlus
                 return false;
             }
 
-            if (modConfig.Presets.ContainsKey(newKeyName))
+            if (ModConfig.Presets.ContainsKey(newKeyName))
             {
                 chatMessanger.ShowMessage(Constants.ChatMessages.DuplicateNameError, MessageType.Error);
                 return false;
             }
 
-            modConfig.Presets[newKeyName] = new PresetConfig
+            ModConfig.Presets[newKeyName] = new PresetConfig
             {
                 Enabled = false,
                 Wildcard = "",
@@ -178,7 +175,7 @@ namespace ParticlesPlus
             string[] presetNames = GetPresetNames();
             presetDropdown.SetList(presetNames, presetNames);
             OnPresetSelection(newKeyName, true);
-            modConfig.WriteConfig();
+            ModConfig.WriteConfig();
             keyInput.SetValue("");
             chatMessanger.ShowMessage(Constants.ChatMessages.PresetAdded, MessageType.Success);
             return true;
@@ -212,7 +209,7 @@ namespace ParticlesPlus
                 Wildcard = wildcard 
             };
 
-            modConfig.UpdatePreset(preset, updatedPreset);
+            ModConfig.UpdatePreset(preset, updatedPreset);
             chatMessanger.ShowMessage(Constants.ChatMessages.PresetSaved, MessageType.Success);
             return true;
             
@@ -222,7 +219,7 @@ namespace ParticlesPlus
             GuiElementDropDown presetDropdown = SingleComposer.GetDropDown("presetDropdown");
             string keyToDelete = presetDropdown.SelectedValue;
 
-            modConfig.RemovePreset(keyToDelete);
+            ModConfig.RemovePreset(keyToDelete);
 
             string[] presetNames = GetPresetNames();
             // Set updated list to dropdown
@@ -241,7 +238,7 @@ namespace ParticlesPlus
         }
         private void OnGlobalSwitch(bool enabled)
         {
-            modSystem.ToggleParticles(!enabled);
+            ModConfig.SetGlobal(enabled);
         }
     } 
 }
