@@ -5,10 +5,9 @@ namespace ParticlesPlus
 {
     public class ModSystem : Vintagestory.API.Common.ModSystem
     {
-        public ModConfig modConfig;
-        public ParticlesManager particlesManager;
+        public ModConfig ModConfig => new (this);
         public ICoreClientAPI capi;
-        public GuiDialog dialog;
+        private GuiDialog dialog;
         
 
         public override bool ShouldLoad(EnumAppSide forSide)
@@ -18,9 +17,8 @@ namespace ParticlesPlus
         public override void StartClientSide(ICoreClientAPI api)
         {
             capi = api;
-            modConfig = new ModConfig(this);
             dialog = new MainGuiDialog(this);
-            particlesManager = new ParticlesManager(this);
+
             capi.Input.RegisterHotKey(
                     "toggleParticles",
                     "Toggle Particles Plus",
@@ -36,34 +34,17 @@ namespace ParticlesPlus
         }
         public override void AssetsFinalize(ICoreAPI api)
         {
-            if (modConfig != null && modConfig.Presets != null && modConfig.Particles != null)
-            {
-                particlesManager.ApplyEnabledParticles();
-            }
-
+            ModConfig.Initialize();
             api.Logger.Event($"Started [{Mod.Info.Name}] mod");
         }
         private bool OnHotkeyToggleParticles(KeyCombination keyComb)
         {
             GuiElementSwitch globalSwitch = dialog.Composers["single"].GetSwitch("globalSwitch");
-            ToggleParticles(modConfig.Global);
-            globalSwitch.SetValue(modConfig.Global);
+
+            globalSwitch.SetValue(!ModConfig.Global);
+            ModConfig.SetGlobal(!ModConfig.Global);
+            
             return true;
-        }
-        public void ToggleParticles(bool enabled) // TODO: Fix this and find it a place to live!
-        {
-            if (!enabled)
-            {
-                particlesManager.ApplyEnabledParticles();
-                modConfig.Global = false;
-                modConfig.WriteConfig();
-            }
-            else
-            {
-                modConfig.Global = true;
-                particlesManager.RemoveEnabledParticles();
-                modConfig.WriteConfig();
-            }
         }
     }
 }

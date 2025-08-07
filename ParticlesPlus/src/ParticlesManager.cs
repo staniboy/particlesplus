@@ -8,22 +8,15 @@ namespace ParticlesPlus
     public class ParticlesManager
     {
         private readonly ICoreClientAPI _capi;
-        private readonly ModConfig _modConfig;
-        private readonly ParticlesManager _particlesManager;
-        public ParticlesManager(ModSystem modSystem)
+
+        private ICoreClientAPI API => _capi;
+        public ParticlesManager(ICoreClientAPI capi)
         {
-            _capi = modSystem.capi;
-            _modConfig = modSystem.modConfig;
-        }
-        private AdvancedParticleProperties[] GetParticles(string particlesKey)
-        {
-            return _modConfig.Particles.TryGetValue(particlesKey, out var particles)
-                ? particles
-                : Array.Empty<AdvancedParticleProperties>();
+            _capi = capi;
         }
         private Block[] GetBlocks(string wildcard)
         {
-            return _capi.World.SearchBlocks(wildcard);
+            return API.World.SearchBlocks(wildcard);
         }
         public void RemoveParticles(string wildcard)
         {
@@ -33,9 +26,8 @@ namespace ParticlesPlus
                 block.ParticleProperties = Array.Empty<AdvancedParticleProperties>();
             }
         }
-        public void AddParticles(string wildcard, string particlesKey)
+        public void AddParticles(string wildcard, AdvancedParticleProperties[] particles)
         {
-            AdvancedParticleProperties[] particles = GetParticles(particlesKey);
             if (particles == null || particles.Length == 0) return;
 
             Block[] blocks = GetBlocks(wildcard);
@@ -45,24 +37,6 @@ namespace ParticlesPlus
                 block.ParticleProperties = block.ParticleProperties
                                 .Concat(particles)
                                 .ToArray();
-            }
-        }
-        public void ApplyEnabledParticles()
-        {
-            foreach (var preset in _modConfig.Presets)
-            {
-                if (!preset.Value.Enabled) continue;
-
-                AddParticles(preset.Value.Wildcard, preset.Value.Particles);
-            }
-        }
-        public void RemoveEnabledParticles()
-        {
-            foreach (var preset in _modConfig.Presets)
-            {
-                if (!preset.Value.Enabled) continue;
-
-                RemoveParticles(preset.Value.Wildcard);
             }
         }
     }

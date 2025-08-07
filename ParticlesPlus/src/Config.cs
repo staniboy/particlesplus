@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
-using Vintagestory.Client.NoObf;
 
 namespace ParticlesPlus
 {
@@ -23,8 +22,9 @@ namespace ParticlesPlus
 
 
         private readonly ModSystem _modSystem;
-        private ParticlesManager ParticlesManager => _modSystem.particlesManager;
+
         private ICoreClientAPI API => _modSystem.capi;
+        private ParticlesManager ParticlesManager => new (API);
         private string ConfigFileName => $"{_modSystem.Mod.Info.ModID}.json";
 
         public ModConfig() { }
@@ -36,7 +36,7 @@ namespace ParticlesPlus
             {
                 var loadedConfig = API.LoadModConfig<ModConfig>(ConfigFileName);
 
-                if (loadedConfig == null)
+                if (loadedConfig == null) // If config doesn't exist create and write default one
                 {
                     var defaultConfigAsset = API.Assets.Get(new AssetLocation(modSystem.Mod.Info.ModID, "config/particlesplus.json"));
                     string defaultConfigText = defaultConfigAsset.ToText();
@@ -48,20 +48,42 @@ namespace ParticlesPlus
                 }
                 else
                 {
-                    if (loadedConfig.Version == 0)
+                    if (loadedConfig.Version == 0) // If version mismatch throw an error
                     {
                         string errorMsg = $"[{modSystem.Mod.Info.Name}] Config file is missing required 'Version' field (old or malformed config). Please regenerate or update it."; 
                         API.Logger.Error(errorMsg);
                         throw new InvalidOperationException(errorMsg);
                     }
-                    CopyFrom(loadedConfig);
+                    CopyFrom(loadedConfig); // Otherwise load existing config
                 }
             }
-            catch (Exception e)
+            catch (Exception e) // Catch anything else
             {
                 string errorMsg = $"[{modSystem.Mod.Info.Name}] Failed to load config file: {e.Message}";
                 API.Logger.Error(errorMsg);
                 throw new InvalidOperationException(errorMsg, e);
+            }
+        }
+        public void Initialize()
+        {
+            if (!Global) return;
+            ApplyEnabledParticles();
+        }
+
+        public void SetGlobal(bool enabled) 
+        {
+            if (Global == enabled) return;
+            
+            Global = enabled;
+            WriteConfig();
+
+            if (Global)
+            {
+                ApplyEnabledParticles();
+            }
+            else
+            {
+                RemoveEnabledParticles();
             }
         }
         private void CopyFrom(ModConfig modConfig)
@@ -91,8 +113,8 @@ namespace ParticlesPlus
 
             if (updatedPreset.Enabled && Global)
             {
-
-                ParticlesManager.AddParticles(updatedPreset.Wildcard, updatedPreset.Particles);
+                AdvancedParticleProperties[] particles = GetConfigParticles(updatedPreset.Particles);
+                ParticlesManager.AddParticles(updatedPreset.Wildcard, particles);
             }
 
             Presets[key] = updatedPreset;
@@ -100,7 +122,6 @@ namespace ParticlesPlus
 
             return true;
         }
-
         public bool RemovePreset(string key)
         {
             if (key == "<none>")
@@ -117,6 +138,32 @@ namespace ParticlesPlus
         public void WriteConfig()
         {
             API.StoreModConfig(this, ConfigFileName);
+        }
+        public void ApplyEnabledParticles()
+        {
+            if (Presets == null || Particles == null) return;
+
+            foreach (var preset in Presets)
+            {
+                if (!preset.Value.Enabled) continue;
+                AdvancedParticleProperties[] particles = GetConfigParticles(preset.Value.Particles);
+                ParticlesManager.AddParticles(preset.Value.Wildcard, particles);
+            }
+        }
+        public void RemoveEnabledParticles()
+        {
+            foreach (var preset in Presets)
+            {
+                if (!preset.Value.Enabled) continue;
+
+                ParticlesManager.RemoveParticles(preset.Value.Wildcard);
+            }
+        }
+        private AdvancedParticleProperties[] GetConfigParticles(string particlesKey)
+        {
+            return Particles.TryGetValue(particlesKey, out var particles)
+                ? particles
+                : Array.Empty<AdvancedParticleProperties>();
         }
     }
 }
