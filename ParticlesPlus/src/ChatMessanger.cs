@@ -10,18 +10,16 @@ namespace ParticlesPlus
     internal class ChatMessanger
     {
         private readonly ModSystem _modSystem;
-        private readonly ICoreClientAPI _capi;
+        private ICoreClientAPI API => _modSystem.capi;
+        private string ModName => _modSystem.Mod.Info.Name;
 
-        private readonly string _modName;
         private readonly string successColor = "#5CAE63";
         private readonly string errorColor = "#D75F4C";
 
 
-        public ChatMessanger(ICoreClientAPI capi, ModSystem modSystem)
+        public ChatMessanger(ModSystem modSystem)
         {
-            _capi = capi;
             _modSystem = modSystem;
-            _modName = _modSystem.Mod.Info.Name;
         }
 
         public void ShowMessage(string messageBody, MessageType type)
@@ -33,9 +31,9 @@ namespace ParticlesPlus
                 _ => "#FFFFFF",
             };
 
-            string message = $"[{_modName}]: {messageBody}";
+            string message = $"[{ModName}]: {messageBody}";
 
-            _capi.ShowChatMessage($"<strong><font color='{messageColor}'>{message}</font></strong>");
+            API.ShowChatMessage($"<strong><font color='{messageColor}'>{message}</font></strong>");
         }
     }
 }
