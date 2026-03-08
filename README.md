@@ -1,5 +1,5 @@
 # ParticlesPlus
-A mod for Vintage Story based on [VTP](https://mods.vintagestory.at/vtp) by Dana.
+A mod for Vintage Story based on [Visible Terra Preta Particles](https://mods.vintagestory.at/vtp) by Dana.
 
 ## Credits
 - Original logic by [Craluminum-Mods](https://github.com/Craluminum-Mods)
