@@ -7,6 +7,8 @@
         "el_shift"
     ],
     "description": "Adds particles to various blocks.",
-    "version": "2.3.2",
-    "dependencies": {}
+    "version": "2.4.0",
+    "dependencies": {
+        "game": ">=1.22.0-pre.1"
+    }
 }
