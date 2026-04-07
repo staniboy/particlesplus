@@ -24,7 +24,7 @@ namespace ParticlesPlus
         private readonly ModSystem _modSystem;
 
         private ICoreClientAPI API => _modSystem.capi;
-        private ParticlesManager ParticlesManager => new (API);
+        private ParticlesManager ParticlesManager => new(API);
         private string ConfigFileName => $"{_modSystem.Mod.Info.ModID}.json";
 
         public ModConfig() { }
@@ -50,7 +50,7 @@ namespace ParticlesPlus
                 {
                     if (loadedConfig.Version == 0) // If version mismatch throw an error
                     {
-                        string errorMsg = $"[{modSystem.Mod.Info.Name}] Config file is missing required 'Version' field (old or malformed config). Please regenerate or update it."; 
+                        string errorMsg = $"[{modSystem.Mod.Info.Name}] Config file is missing required 'Version' field (old or malformed config). Please regenerate or update it.";
                         API.Logger.Error(errorMsg);
                         throw new InvalidOperationException(errorMsg);
                     }
@@ -70,10 +70,10 @@ namespace ParticlesPlus
             ApplyEnabledParticles();
         }
 
-        public void SetGlobal(bool enabled) 
+        public void SetGlobal(bool enabled)
         {
             if (Global == enabled) return;
-            
+
             Global = enabled;
             WriteConfig();
 
@@ -95,46 +95,83 @@ namespace ParticlesPlus
             Presets = modConfig.Presets ?? new();
             Particles = modConfig.Particles ?? new();
         }
-        public bool UpdatePreset(string key, PresetConfig updatedPreset)
+
+        private void SyncParticles(string wildcard, PresetConfig config)
         {
-            if (string.IsNullOrEmpty(key))
-                throw new ArgumentException("[Particles Plus]: Preset name cannot be null or empty", nameof(key));
 
-            if (!Presets.TryGetValue(key, out PresetConfig targetPreset))
-                return false;
+            ParticlesManager.RemoveParticles(wildcard);
 
-            if (targetPreset == updatedPreset)
-                return true;
-
-            if (targetPreset.Enabled)
+            if (config.Enabled && Global)
             {
-                ParticlesManager.RemoveParticles(targetPreset.Wildcard);
+                var particles = GetConfigParticles(config.Particles);
+                ParticlesManager.AddParticles(config.Wildcard, particles);
+            }
+        }
+
+        public string CreatePreset()
+        {
+
+            int suffix = 1;
+            string newKey = $"new-preset-{suffix}";
+
+            while (Presets.ContainsKey(newKey))
+            {
+                suffix++;
+                newKey = $"new-preset-{suffix}";
             }
 
-            if (updatedPreset.Enabled && Global)
+            PresetConfig boilerplate = new PresetConfig
             {
-                AdvancedParticleProperties[] particles = GetConfigParticles(updatedPreset.Particles);
-                ParticlesManager.AddParticles(updatedPreset.Wildcard, particles);
-            }
+                Enabled = false,
+                Wildcard = "entity/*",
+                Particles = ""
+            };
 
-            Presets[key] = updatedPreset;
+            Presets[newKey] = boilerplate;
             WriteConfig();
 
+            return newKey;
+        }
+
+        public bool UpdatePreset(string oldKey, PresetConfig updatedPreset, string newKey = null)
+        {
+            if (!Presets.TryGetValue(oldKey, out var oldConfig)) return false;
+
+            string finalKey = oldKey;
+
+            if (!string.IsNullOrEmpty(newKey) && newKey != oldKey)
+            {
+                if (Presets.ContainsKey(newKey)) return false;
+                Presets.Remove(oldKey);
+                finalKey = newKey;
+            }
+
+            Presets[finalKey] = updatedPreset;
+
+            SyncParticles(oldConfig.Wildcard, updatedPreset);
+
+            WriteConfig();
             return true;
         }
+
         public bool RemovePreset(string key)
         {
-            if (key == "<none>")
+            if (string.IsNullOrEmpty(key) || !Presets.TryGetValue(key, out var config))
             {
                 return false;
             }
 
-            ParticlesManager.RemoveParticles(Presets[key].Wildcard);
+            if (config.Enabled)
+            {
+                ParticlesManager.RemoveParticles(config.Wildcard);
+            }
+
             Presets.Remove(key);
             WriteConfig();
 
             return true;
         }
+
         public void WriteConfig()
         {
             API.StoreModConfig(this, ConfigFileName);
