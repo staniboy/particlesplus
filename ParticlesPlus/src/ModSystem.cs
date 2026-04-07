@@ -5,10 +5,11 @@ namespace ParticlesPlus
 {
     public class ModSystem : Vintagestory.API.Common.ModSystem
     {
-        public ModConfig ModConfig => new (this);
+        public ModConfig ModConfig => new(this);
         public ICoreClientAPI capi;
         private GuiDialog dialog;
-        
+        private GuiSystem guiSystem;
+
 
         public override bool ShouldLoad(EnumAppSide forSide)
         {
@@ -18,12 +19,13 @@ namespace ParticlesPlus
         {
             capi = api;
             dialog = new MainGuiDialog(this);
+            guiSystem = new GuiSystem(this);
 
             capi.Input.RegisterHotKey(
                     "toggleParticles",
                     "Toggle Particles Plus",
                     GlKeys.P,
-                    HotkeyType.HelpAndOverlays,         
+                    HotkeyType.HelpAndOverlays,
                     shiftPressed: false,
                     ctrlPressed: true,
                     altPressed: false
@@ -43,7 +45,7 @@ namespace ParticlesPlus
 
             globalSwitch.SetValue(!ModConfig.Global);
             ModConfig.SetGlobal(!ModConfig.Global);
-            
+
             return true;
         }
     }
