@@ -9,9 +9,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Reference Include="ImGui.NET">
+      <HintPath>Lib\ImGui.NET.dll</HintPath>
+    </Reference>
     <Reference Include="VintagestoryAPI">
       <HintPath>$(VINTAGE_STORY)/VintagestoryAPI.dll</HintPath>
       <Private>false</Private>
+    </Reference>
+    <Reference Include="VSImGui">
+      <HintPath>Lib\VSImGui.dll</HintPath>
     </Reference>
     <Reference Include="VSSurvivalMod">
       <HintPath>$(VINTAGE_STORY)/Mods/VSSurvivalMod.dll</HintPath>
