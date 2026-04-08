@@ -1,4 +1,5 @@
 ﻿using ImGuiNET;
+using System.Linq;
 using Vintagestory.API.Client;
 using VSImGui;
 using VSImGui.API;
@@ -31,8 +32,26 @@ public class GuiSystem
             _showGui = !_showGui;
             return true;
         });
+        SetDefaultPreset();
     }
 
+    private void SetDefaultPreset()
+    {
+        string initialPresetKey = _modSystem.ModConfig.Presets.Keys.FirstOrDefault();
+
+        if (!string.IsNullOrEmpty(initialPresetKey))
+        {
+            _selectedComboKey = initialPresetKey;
+            _selectedPresetKey = initialPresetKey;
+            _selectedPreset = _modSystem.ModConfig.Presets[initialPresetKey];
+        }
+        else
+        {
+            _selectedComboKey = "";
+            _selectedPresetKey = "";
+            _selectedPreset = null;
+        }
+    }
     private CallbackGUIStatus DrawMenu(float dt)
     {
         if (!_showGui) return CallbackGUIStatus.Closed;
@@ -49,18 +68,13 @@ public class GuiSystem
                 modConfig.SetGlobal(!modConfig.Global);
             }
 
-            string preview = string.IsNullOrEmpty(_selectedComboKey) ? "None" : _selectedComboKey;
+            string comboPlaceholder = string.IsNullOrEmpty(_selectedComboKey) ? "No Presets" : _selectedComboKey;
 
             ImGui.SeparatorText("Preset:");
             // Preset select combobox
             ImGui.Spacing();
-            if (ImGui.BeginCombo("", preview))
+            if (ImGui.BeginCombo("", comboPlaceholder))
             {
-                if (ImGui.Selectable("None", string.IsNullOrEmpty(_selectedComboKey)))
-                {
-                    _selectedComboKey = "";
-                }
-
                 foreach (string preset in modConfig.Presets.Keys)
                 {
                     bool isSelected = (_selectedComboKey == preset);
@@ -144,7 +158,7 @@ public class GuiSystem
                 if (ImGui.Button("Delete"))
                 {
                     modConfig.RemovePreset(_selectedComboKey);
-                    _selectedComboKey = "";
+                    SetDefaultPreset();
                 }
             }
             else
