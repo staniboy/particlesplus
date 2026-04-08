@@ -1,73 +1,40 @@
 ﻿using ImGuiNET;
 using System.Linq;
-using Vintagestory.API.Client;
-using VSImGui;
-using VSImGui.API;
 
-namespace ParticlesPlus;
-
-public class GuiSystem
+namespace ParticlesPlus.GUI
 {
-    private bool _showGui = false;
-    private readonly ModSystem _modSystem;
-    private readonly ImGuiModSystem _guiSystem;
-    private ICoreClientAPI API => _modSystem.capi;
-
-    private string _selectedComboKey = "";
-    private string _selectedPresetKey = "";
-    private PresetConfig _selectedPreset;
-
-    public GuiSystem(ModSystem modSystem)
+    internal class GuiPresetContent
     {
-        _modSystem = modSystem;
-        _guiSystem = API.ModLoader.GetModSystem<ImGuiModSystem>();
+        private readonly ModConfig _modConfig;
 
-        if (_guiSystem == null) return;
+        private string _selectedComboKey = "";
+        private string _selectedPresetKey = "";
+        private PresetConfig _selectedPreset;
 
-        _guiSystem.Draw += DrawMenu;
-
-        API.Input.RegisterHotKey("togglemenu", "Toggle Mod Menu", GlKeys.U, HotkeyType.GUIOrOtherControls, ctrlPressed: false);
-        API.Input.SetHotKeyHandler("togglemenu", _ =>
+        public GuiPresetContent(ModConfig modConfig)
         {
-            _showGui = !_showGui;
-            return true;
-        });
-        SetDefaultPreset();
-    }
-
-    private void SetDefaultPreset()
-    {
-        string initialPresetKey = _modSystem.ModConfig.Presets.Keys.FirstOrDefault();
-
-        if (!string.IsNullOrEmpty(initialPresetKey))
-        {
-            _selectedComboKey = initialPresetKey;
-            _selectedPresetKey = initialPresetKey;
-            _selectedPreset = _modSystem.ModConfig.Presets[initialPresetKey];
+            _modConfig = modConfig;
+            SetDefaultPreset();
         }
-        else
+        private void SetDefaultPreset()
         {
-            _selectedComboKey = "";
-            _selectedPresetKey = "";
-            _selectedPreset = null;
-        }
-    }
-    private CallbackGUIStatus DrawMenu(float dt)
-    {
-        if (!_showGui) return CallbackGUIStatus.Closed;
+            string initialPresetKey = _modConfig.Presets.Keys.FirstOrDefault();
 
-        var modConfig = _modSystem.ModConfig;
-
-        if (ImGui.Begin("Particles Plus", ref _showGui, ImGuiWindowFlags.AlwaysAutoResize))
-        {
-            ImGui.Spacing();
-            // Global Toggle
-            bool globalEnabled = modConfig.Global;
-            if (ImGui.Checkbox("Custom Particles Enabled", ref globalEnabled))
+            if (!string.IsNullOrEmpty(initialPresetKey))
             {
-                modConfig.SetGlobal(!modConfig.Global);
+                _selectedComboKey = initialPresetKey;
+                _selectedPresetKey = initialPresetKey;
+                _selectedPreset = _modConfig.Presets[initialPresetKey];
             }
-
+            else
+            {
+                _selectedComboKey = "";
+                _selectedPresetKey = "";
+                _selectedPreset = null;
+            }
+        }
+        public void Draw()
+        {
             string comboPlaceholder = string.IsNullOrEmpty(_selectedComboKey) ? "No Presets" : _selectedComboKey;
 
             ImGui.SeparatorText("Preset:");
@@ -75,7 +42,7 @@ public class GuiSystem
             ImGui.Spacing();
             if (ImGui.BeginCombo("", comboPlaceholder))
             {
-                foreach (string preset in modConfig.Presets.Keys)
+                foreach (string preset in _modConfig.Presets.Keys)
                 {
                     bool isSelected = (_selectedComboKey == preset);
 
@@ -83,7 +50,7 @@ public class GuiSystem
                     {
                         _selectedComboKey = preset;
                         _selectedPresetKey = preset;
-                        _selectedPreset = modConfig.Presets[preset];
+                        _selectedPreset = _modConfig.Presets[preset];
                     }
 
                     if (isSelected) ImGui.SetItemDefaultFocus();
@@ -94,9 +61,9 @@ public class GuiSystem
             ImGui.SameLine();
             if (ImGui.Button("Add New"))
             {
-                _selectedComboKey = modConfig.CreatePreset();
+                _selectedComboKey = _modConfig.CreatePreset();
                 _selectedPresetKey = _selectedComboKey;
-                _selectedPreset = modConfig.Presets[_selectedComboKey];
+                _selectedPreset = _modConfig.Presets[_selectedComboKey];
             }
             ImGui.SeparatorText("Preset Properties:");
             if (!string.IsNullOrEmpty(_selectedComboKey))
@@ -111,7 +78,7 @@ public class GuiSystem
                 // Particles
                 if (ImGui.BeginCombo("Particles", _selectedPreset.Particles))
                 {
-                    foreach (string particleKey in modConfig.Particles.Keys)
+                    foreach (string particleKey in _modConfig.Particles.Keys)
                     {
                         bool isSelected = (_selectedPreset.Particles == particleKey);
 
@@ -144,7 +111,7 @@ public class GuiSystem
                 // Save
                 if (ImGui.Button("Save"))
                 {
-                    if (modConfig.UpdatePreset(_selectedComboKey, _selectedPreset, _selectedPresetKey) && !string.IsNullOrEmpty(_selectedPresetKey))
+                    if (_modConfig.UpdatePreset(_selectedComboKey, _selectedPreset, _selectedPresetKey) && !string.IsNullOrEmpty(_selectedPresetKey))
                     {
                         _selectedComboKey = _selectedPresetKey;
                     }
@@ -157,7 +124,7 @@ public class GuiSystem
                 // Delete
                 if (ImGui.Button("Delete"))
                 {
-                    modConfig.RemovePreset(_selectedComboKey);
+                    _modConfig.RemovePreset(_selectedComboKey);
                     SetDefaultPreset();
                 }
             }
@@ -166,7 +133,5 @@ public class GuiSystem
                 ImGui.Text("No preset is selected.");
             }
         }
-        ImGui.End();
-        return CallbackGUIStatus.GrabMouse;
     }
 }

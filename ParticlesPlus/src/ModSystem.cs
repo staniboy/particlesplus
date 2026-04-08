@@ -1,4 +1,5 @@
-﻿using Vintagestory.API.Client;
+﻿using ParticlesPlus.GUI;
+using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 
 namespace ParticlesPlus
