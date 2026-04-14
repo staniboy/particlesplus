@@ -7,8 +7,9 @@
         "el_shift"
     ],
     "description": "Adds particles to various blocks.",
-    "version": "2.4.1",
+    "version": "2.5.0",
     "dependencies": {
-        "game": "1.22.0-rc.8"
+        "game": "1.22.0-rc.8",
+        "vsimgui": "1.2.1"
     }
 }
