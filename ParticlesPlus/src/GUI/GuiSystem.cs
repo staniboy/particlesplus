@@ -41,16 +41,33 @@ public class GuiSystem
 
         if (ImGui.Begin("Particles Plus", ref _showGui, ImGuiWindowFlags.AlwaysAutoResize))
         {
-            ImGui.Spacing();
-            // Global Toggle
-            bool globalEnabled = modConfig.Global;
-            if (ImGui.Checkbox("Custom Particles Enabled", ref globalEnabled))
+            if (ImGui.BeginTabBar("MyTabBar"))
             {
-                modConfig.SetGlobal(!modConfig.Global);
+                if (ImGui.BeginTabItem("Presets"))
+                {
+                    _guiPresetContent.Draw();
+
+                    ImGui.EndTabItem();
+                }
+
+                if (ImGui.BeginTabItem("Particles"))
+                {
+                    ImGui.Text("Something will be here");
+                    ImGui.EndTabItem();
+                }
+
+                if (ImGui.BeginTabItem("Options"))
+                {
+                    // Global Toggle
+                    bool globalEnabled = modConfig.Global;
+                    if (ImGui.Checkbox("Custom Particles Enabled", ref globalEnabled))
+                    {
+                        modConfig.SetGlobal(!modConfig.Global);
+                    }
+                    ImGui.EndTabItem();
+                }
+                ImGui.EndTabBar();
             }
-
-            _guiPresetContent.Draw();
-
         }
         ImGui.End();
         return CallbackGUIStatus.GrabMouse;
