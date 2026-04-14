@@ -50,11 +50,11 @@ public class GuiSystem
                     ImGui.EndTabItem();
                 }
 
-                if (ImGui.BeginTabItem("Particles"))
-                {
-                    ImGui.Text("Something will be here");
-                    ImGui.EndTabItem();
-                }
+                //if (ImGui.BeginTabItem("Particles"))
+                //{
+                //    ImGui.Text("Something will be here");
+                //    ImGui.EndTabItem();
+                //}
 
                 if (ImGui.BeginTabItem("Options"))
                 {
