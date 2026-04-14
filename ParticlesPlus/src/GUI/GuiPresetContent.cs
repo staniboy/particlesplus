@@ -24,7 +24,7 @@ namespace ParticlesPlus.GUI
             {
                 _selectedComboKey = defaultPresetKey;
                 _selectedPresetKey = defaultPresetKey;
-                _selectedPreset = _modConfig.Presets[defaultPresetKey];
+                _selectedPreset = _modConfig.Presets[defaultPresetKey] with { };
             }
             else
             {
@@ -40,17 +40,17 @@ namespace ParticlesPlus.GUI
             ImGui.SeparatorText("Preset:");
             // Preset select combobox
             ImGui.Spacing();
-            if (ImGui.BeginCombo("", comboPlaceholder))
+            if (ImGui.BeginCombo("##Preset", comboPlaceholder))
             {
-                foreach (string preset in _modConfig.Presets.Keys)
+                foreach (string presetKey in _modConfig.Presets.Keys)
                 {
-                    bool isSelected = (_selectedComboKey == preset);
+                    bool isSelected = (_selectedComboKey == presetKey);
 
-                    if (ImGui.Selectable(preset, isSelected))
+                    if (ImGui.Selectable(presetKey, isSelected))
                     {
-                        _selectedComboKey = preset;
-                        _selectedPresetKey = preset;
-                        _selectedPreset = _modConfig.Presets[preset];
+                        _selectedComboKey = presetKey;
+                        _selectedPresetKey = presetKey;
+                        _selectedPreset = _modConfig.Presets[presetKey] with { };
                     }
 
                     if (isSelected) ImGui.SetItemDefaultFocus();
@@ -63,7 +63,7 @@ namespace ParticlesPlus.GUI
             {
                 _selectedComboKey = _modConfig.CreatePreset();
                 _selectedPresetKey = _selectedComboKey;
-                _selectedPreset = _modConfig.Presets[_selectedComboKey];
+                _selectedPreset = _modConfig.Presets[_selectedComboKey] with { };
             }
             ImGui.SeparatorText("Preset Properties:");
             if (!string.IsNullOrEmpty(_selectedComboKey))
@@ -84,7 +84,7 @@ namespace ParticlesPlus.GUI
 
                         if (ImGui.Selectable(particleKey, isSelected))
                         {
-                            _selectedPreset.Particles = particleKey;
+                            _selectedPreset = _selectedPreset with { Particles = particleKey };
                         }
 
                         if (isSelected) ImGui.SetItemDefaultFocus();
@@ -96,7 +96,7 @@ namespace ParticlesPlus.GUI
                 string wildcard = _selectedPreset.Wildcard;
                 if (ImGui.InputText("Wildcard", ref wildcard, 100))
                 {
-                    _selectedPreset.Wildcard = wildcard;
+                    _selectedPreset = _selectedPreset with { Wildcard = wildcard };
                 }
 
                 ImGui.Spacing();
@@ -104,14 +104,14 @@ namespace ParticlesPlus.GUI
                 bool enabled = _selectedPreset.Enabled;
                 if (ImGui.Checkbox("Enabled", ref enabled))
                 {
-                    _selectedPreset.Enabled = enabled;
+                    _selectedPreset = _selectedPreset with { Enabled = enabled };
                 }
 
                 ImGui.Spacing();
                 // Save
                 if (ImGui.Button("Save"))
                 {
-                    if (_modConfig.UpdatePreset(_selectedComboKey, _selectedPreset, _selectedPresetKey) && !string.IsNullOrEmpty(_selectedPresetKey))
+                    if (_modConfig.UpdatePreset(_selectedComboKey, _selectedPreset, _selectedPresetKey))
                     {
                         _selectedComboKey = _selectedPresetKey;
                     }

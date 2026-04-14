@@ -9,14 +9,13 @@ namespace ParticlesPlus
     {
         private readonly ICoreClientAPI _capi;
 
-        private ICoreClientAPI API => _capi;
         public ParticlesManager(ICoreClientAPI capi)
         {
             _capi = capi;
         }
         private Block[] GetBlocks(string wildcard)
         {
-            return API.World.SearchBlocks(wildcard);
+            return _capi.World.SearchBlocks(wildcard);
         }
         public void RemoveParticles(string wildcard)
         {
@@ -29,6 +28,7 @@ namespace ParticlesPlus
         public void AddParticles(string wildcard, AdvancedParticleProperties[] particles)
         {
             if (particles == null || particles.Length == 0) return;
+            if (string.IsNullOrEmpty(wildcard)) return;
 
             Block[] blocks = GetBlocks(wildcard);
             foreach (Block block in blocks)

@@ -22,13 +22,19 @@ public class GuiSystem
 
         if (_guiSystem == null) return;
 
-        _guiPresetContent = new(_modSystem.ModConfig);
+        _guiPresetContent = new(_modSystem.modConfig);
 
         _guiSystem.Draw += DrawMenu;
-        API.Input.RegisterHotKey("togglemenu", "Toggle Mod Menu", GlKeys.U, HotkeyType.GUIOrOtherControls, ctrlPressed: false);
-        API.Input.SetHotKeyHandler("togglemenu", _ =>
+        API.Input.RegisterHotKey("particlesplusgui", "Toggle Particles Plus GUI", GlKeys.P, HotkeyType.GUIOrOtherControls, ctrlPressed: false);
+        API.Input.RegisterHotKey("particlesplusglobal", "Toggle Particles Plus Global", GlKeys.P, HotkeyType.GUIOrOtherControls, ctrlPressed: true);
+        API.Input.SetHotKeyHandler("particlesplusgui", _ =>
         {
             _showGui = !_showGui;
+            return true;
+        });
+        API.Input.SetHotKeyHandler("particlesplusglobal", _ =>
+        {
+            modSystem.modConfig.ToggleGlobal();
             return true;
         });
     }
@@ -37,7 +43,7 @@ public class GuiSystem
     {
         if (!_showGui) return CallbackGUIStatus.Closed;
 
-        var modConfig = _modSystem.ModConfig;
+        var modConfig = _modSystem.modConfig;
 
         if (ImGui.Begin("Particles Plus", ref _showGui, ImGuiWindowFlags.AlwaysAutoResize))
         {
@@ -62,7 +68,7 @@ public class GuiSystem
                     bool globalEnabled = modConfig.Global;
                     if (ImGui.Checkbox("Custom Particles Enabled", ref globalEnabled))
                     {
-                        modConfig.SetGlobal(!modConfig.Global);
+                        modConfig.ToggleGlobal();
                     }
                     ImGui.EndTabItem();
                 }

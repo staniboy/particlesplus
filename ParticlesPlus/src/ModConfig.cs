@@ -9,9 +9,9 @@ namespace ParticlesPlus
 
     public record PresetConfig
     {
-        public bool Enabled { get; set; }
-        public string Wildcard { get; set; } = "";
-        public string Particles { get; set; } = "";
+        public bool Enabled { get; init; }
+        public string Wildcard { get; init; } = "";
+        public string Particles { get; init; } = "";
     }
     public class ModConfig
     {
@@ -22,23 +22,27 @@ namespace ParticlesPlus
 
 
         private readonly ModSystem _modSystem;
+        private readonly ChatMessanger _chatMessanger;
 
-        private ICoreClientAPI API => _modSystem.capi;
-        private ParticlesManager ParticlesManager => new(API);
+        private readonly ICoreClientAPI _api;
+        private ParticlesManager _particlesManager;
         private string ConfigFileName => $"{_modSystem.Mod.Info.ModID}.json";
 
         public ModConfig() { }
         public ModConfig(ModSystem modSystem)
         {
             _modSystem = modSystem;
+            _api = _modSystem.capi;
+            _particlesManager = new(_api);
+            _chatMessanger = new(modSystem);
 
             try
             {
-                var loadedConfig = API.LoadModConfig<ModConfig>(ConfigFileName);
+                var loadedConfig = _api.LoadModConfig<ModConfig>(ConfigFileName);
 
                 if (loadedConfig == null) // If config doesn't exist create and write default one
                 {
-                    var defaultConfigAsset = API.Assets.Get(new AssetLocation(modSystem.Mod.Info.ModID, "config/particlesplus.json"));
+                    var defaultConfigAsset = _api.Assets.Get(new AssetLocation(modSystem.Mod.Info.ModID, "config/particlesplus.json"));
                     string defaultConfigText = defaultConfigAsset.ToText();
 
                     loadedConfig = JsonConvert.DeserializeObject<ModConfig>(defaultConfigText);
@@ -51,7 +55,7 @@ namespace ParticlesPlus
                     if (loadedConfig.Version == 0) // If version mismatch throw an error
                     {
                         string errorMsg = $"[{modSystem.Mod.Info.Name}] Config file is missing required 'Version' field (old or malformed config). Please regenerate or update it.";
-                        API.Logger.Error(errorMsg);
+                        _api.Logger.Error(errorMsg);
                         throw new InvalidOperationException(errorMsg);
                     }
                     CopyFrom(loadedConfig); // Otherwise load existing config
@@ -60,22 +64,20 @@ namespace ParticlesPlus
             catch (Exception e) // Catch anything else
             {
                 string errorMsg = $"[{modSystem.Mod.Info.Name}] Failed to load config file: {e.Message}";
-                API.Logger.Error(errorMsg);
+                _api.Logger.Error(errorMsg);
                 throw new InvalidOperationException(errorMsg, e);
             }
+            Initialize();
         }
-        public void Initialize()
+        private void Initialize()
         {
             if (!Global) return;
             ApplyEnabledParticles();
         }
 
-        public void SetGlobal(bool enabled)
+        public bool ToggleGlobal()
         {
-            if (Global == enabled) return;
-
-            Global = enabled;
-            WriteConfig();
+            Global = !Global;
 
             if (Global)
             {
@@ -85,6 +87,8 @@ namespace ParticlesPlus
             {
                 RemoveEnabledParticles();
             }
+            _chatMessanger.ShowMessage(Constants.ChatMessages.GlobalStatus + Global, MessageType.Success);
+            return Global;
         }
         private void CopyFrom(ModConfig modConfig)
         {
@@ -92,19 +96,18 @@ namespace ParticlesPlus
 
             Version = modConfig.Version;
             Global = modConfig.Global;
-            Presets = modConfig.Presets ?? new();
-            Particles = modConfig.Particles ?? new();
+            Presets = new(modConfig.Presets ?? new());
+            Particles = new(modConfig.Particles ?? new());
         }
 
-        private void SyncParticles(string wildcard, PresetConfig config)
+        private void SyncParticles(string wildcard, PresetConfig presetConfig)
         {
+            _particlesManager.RemoveParticles(wildcard);
 
-            ParticlesManager.RemoveParticles(wildcard);
-
-            if (config.Enabled && Global)
+            if (!string.IsNullOrEmpty(presetConfig.Wildcard) && (presetConfig.Enabled && Global))
             {
-                var particles = GetConfigParticles(config.Particles);
-                ParticlesManager.AddParticles(config.Wildcard, particles);
+                var particles = GetConfigParticles(presetConfig.Particles);
+                _particlesManager.AddParticles(presetConfig.Wildcard, particles);
             }
         }
 
@@ -133,24 +136,42 @@ namespace ParticlesPlus
             return newKey;
         }
 
-        public bool UpdatePreset(string oldKey, PresetConfig updatedPreset, string newKey = null)
+        public bool UpdatePreset(string presetKey, PresetConfig updatedPreset, string presetName)
         {
-            if (!Presets.TryGetValue(oldKey, out var oldConfig)) return false;
-
-            string finalKey = oldKey;
-
-            if (!string.IsNullOrEmpty(newKey) && newKey != oldKey)
+            if (!Presets.TryGetValue(presetKey, out var oldPreset))
             {
-                if (Presets.ContainsKey(newKey)) return false;
-                Presets.Remove(oldKey);
-                finalKey = newKey;
+                _chatMessanger.ShowMessage(Constants.ChatMessages.PresetNotFound, MessageType.Error);
+                return false;
             }
 
-            Presets[finalKey] = updatedPreset;
+            string keyToUpdate = presetKey;
 
-            SyncParticles(oldConfig.Wildcard, updatedPreset);
+            if (string.IsNullOrEmpty(presetName))
+            {
+                _chatMessanger.ShowMessage(Constants.ChatMessages.EmptyName, MessageType.Error);
+                return false;
+            }
 
+            if (presetKey != presetName)
+            {
+                // 2.1 Check if name already exists
+                if (Presets.ContainsKey(presetName))
+                {
+                    _chatMessanger.ShowMessage(Constants.ChatMessages.DuplicateNameError, MessageType.Error);
+                    return false;
+                }
+
+                // 2.2 Remove old preset
+                Presets.Remove(presetKey);
+                keyToUpdate = presetName;
+            }
+
+            SyncParticles(oldPreset.Wildcard, updatedPreset);
+            Presets[keyToUpdate] = updatedPreset with { };
             WriteConfig();
+
+            _chatMessanger.ShowMessage(Constants.ChatMessages.PresetSaved, MessageType.Success);
+
             return true;
         }
 
@@ -158,23 +179,25 @@ namespace ParticlesPlus
         {
             if (string.IsNullOrEmpty(key) || !Presets.TryGetValue(key, out var config))
             {
+                _chatMessanger.ShowMessage(Constants.ChatMessages.PresetNotFound, MessageType.Error);
                 return false;
             }
 
             if (config.Enabled)
             {
-                ParticlesManager.RemoveParticles(config.Wildcard);
+                _particlesManager.RemoveParticles(config.Wildcard);
             }
 
             Presets.Remove(key);
             WriteConfig();
 
+            _chatMessanger.ShowMessage(Constants.ChatMessages.PresetRemoved, MessageType.Success);
             return true;
         }
 
         public void WriteConfig()
         {
-            API.StoreModConfig(this, ConfigFileName);
+            _api.StoreModConfig(this, ConfigFileName);
         }
         public void ApplyEnabledParticles()
         {
@@ -184,7 +207,7 @@ namespace ParticlesPlus
             {
                 if (!preset.Value.Enabled) continue;
                 AdvancedParticleProperties[] particles = GetConfigParticles(preset.Value.Particles);
-                ParticlesManager.AddParticles(preset.Value.Wildcard, particles);
+                _particlesManager.AddParticles(preset.Value.Wildcard, particles);
             }
         }
         public void RemoveEnabledParticles()
@@ -193,7 +216,7 @@ namespace ParticlesPlus
             {
                 if (!preset.Value.Enabled) continue;
 
-                ParticlesManager.RemoveParticles(preset.Value.Wildcard);
+                _particlesManager.RemoveParticles(preset.Value.Wildcard);
             }
         }
         private AdvancedParticleProperties[] GetConfigParticles(string particlesKey)
