@@ -2,15 +2,15 @@
 
 namespace ParticlesPlus
 {
-    enum MessageType
+    public enum MessageType
     {
         Error,
-        Success        
+        Success
     }
-    internal class ChatMessanger
+    public class ChatMessanger
     {
         private readonly ModSystem _modSystem;
-        private ICoreClientAPI API => _modSystem.capi;
+        private ICoreClientAPI _api => _modSystem.API;
         private string ModName => _modSystem.Mod.Info.Name;
 
         private readonly string successColor = "#5CAE63";
@@ -33,7 +33,7 @@ namespace ParticlesPlus
 
             string message = $"[{ModName}]: {messageBody}";
 
-            API.ShowChatMessage($"<strong><font color='{messageColor}'>{message}</font></strong>");
+            _api.ShowChatMessage($"<strong><font color='{messageColor}'>{message}</font></strong>");
         }
     }
 }

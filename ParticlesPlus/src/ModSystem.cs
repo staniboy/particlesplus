@@ -5,10 +5,12 @@ namespace ParticlesPlus
 {
     public class ModSystem : Vintagestory.API.Common.ModSystem
     {
-        public ModConfig ModConfig => new (this);
-        public ICoreClientAPI capi;
-        private GuiDialog dialog;
-        
+        public ICoreClientAPI API { get; private set; }
+        public ModConfig ModConfig { get; private set; }
+        public ChatMessanger ChatMessanger { get; private set; }
+        public ParticlesManager ParticlesManager { get; private set; }
+        public MainGuiDialog GUI { get; private set; }
+
 
         public override bool ShouldLoad(EnumAppSide forSide)
         {
@@ -16,22 +18,26 @@ namespace ParticlesPlus
         }
         public override void StartClientSide(ICoreClientAPI api)
         {
-            capi = api;
-            dialog = new MainGuiDialog(this);
+            API = api;
+            ModConfig = new(this);
+            ChatMessanger = new(this);
+            ParticlesManager = new(this);
+            GUI = new(this);
 
-            capi.Input.RegisterHotKey(
+            API.Input.RegisterHotKey(
                     "toggleParticles",
                     "Toggle Particles Plus",
                     GlKeys.P,
-                    HotkeyType.HelpAndOverlays,         
+                    HotkeyType.HelpAndOverlays,
                     shiftPressed: false,
                     ctrlPressed: true,
                     altPressed: false
                     );
-            capi.Input.SetHotKeyHandler("toggleParticles", OnHotkeyToggleParticles);
+            API.Input.SetHotKeyHandler("toggleParticles", OnHotkeyToggleParticles);
 
-            base.StartClientSide(capi);
+            base.StartClientSide(API);
         }
+
         public override void AssetsFinalize(ICoreAPI api)
         {
             ModConfig.Initialize();
@@ -39,11 +45,11 @@ namespace ParticlesPlus
         }
         private bool OnHotkeyToggleParticles(KeyCombination keyComb)
         {
-            GuiElementSwitch globalSwitch = dialog.Composers["single"].GetSwitch("globalSwitch");
+            GuiElementSwitch globalSwitch = GUI.Composers["single"].GetSwitch("globalSwitch");
 
             globalSwitch.SetValue(!ModConfig.Global);
             ModConfig.SetGlobal(!ModConfig.Global);
-            
+
             return true;
         }
     }

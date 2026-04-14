@@ -23,8 +23,8 @@ namespace ParticlesPlus
 
         private readonly ModSystem _modSystem;
 
-        private ICoreClientAPI API => _modSystem.capi;
-        private ParticlesManager ParticlesManager => new (API);
+        private ICoreClientAPI API => _modSystem.API;
+        private ParticlesManager _particlesManager => _modSystem.ParticlesManager;
         private string ConfigFileName => $"{_modSystem.Mod.Info.ModID}.json";
 
         public ModConfig() { }
@@ -50,7 +50,7 @@ namespace ParticlesPlus
                 {
                     if (loadedConfig.Version == 0) // If version mismatch throw an error
                     {
-                        string errorMsg = $"[{modSystem.Mod.Info.Name}] Config file is missing required 'Version' field (old or malformed config). Please regenerate or update it."; 
+                        string errorMsg = $"[{modSystem.Mod.Info.Name}] Config file is missing required 'Version' field (old or malformed config). Please regenerate or update it.";
                         API.Logger.Error(errorMsg);
                         throw new InvalidOperationException(errorMsg);
                     }
@@ -70,10 +70,10 @@ namespace ParticlesPlus
             ApplyEnabledParticles();
         }
 
-        public void SetGlobal(bool enabled) 
+        public void SetGlobal(bool enabled)
         {
             if (Global == enabled) return;
-            
+
             Global = enabled;
             WriteConfig();
 
@@ -108,13 +108,13 @@ namespace ParticlesPlus
 
             if (targetPreset.Enabled)
             {
-                ParticlesManager.RemoveParticles(targetPreset.Wildcard);
+                _particlesManager.RemoveParticles(targetPreset.Wildcard);
             }
 
             if (updatedPreset.Enabled && Global)
             {
                 AdvancedParticleProperties[] particles = GetConfigParticles(updatedPreset.Particles);
-                ParticlesManager.AddParticles(updatedPreset.Wildcard, particles);
+                _particlesManager.AddParticles(updatedPreset.Wildcard, particles);
             }
 
             Presets[key] = updatedPreset;
@@ -129,7 +129,7 @@ namespace ParticlesPlus
                 return false;
             }
 
-            ParticlesManager.RemoveParticles(Presets[key].Wildcard);
+            _particlesManager.RemoveParticles(Presets[key].Wildcard);
             Presets.Remove(key);
             WriteConfig();
 
@@ -147,7 +147,7 @@ namespace ParticlesPlus
             {
                 if (!preset.Value.Enabled) continue;
                 AdvancedParticleProperties[] particles = GetConfigParticles(preset.Value.Particles);
-                ParticlesManager.AddParticles(preset.Value.Wildcard, particles);
+                _particlesManager.AddParticles(preset.Value.Wildcard, particles);
             }
         }
         public void RemoveEnabledParticles()
@@ -156,7 +156,7 @@ namespace ParticlesPlus
             {
                 if (!preset.Value.Enabled) continue;
 
-                ParticlesManager.RemoveParticles(preset.Value.Wildcard);
+                _particlesManager.RemoveParticles(preset.Value.Wildcard);
             }
         }
         private AdvancedParticleProperties[] GetConfigParticles(string particlesKey)

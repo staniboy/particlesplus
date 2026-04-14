@@ -9,14 +9,13 @@ namespace ParticlesPlus
     {
         private readonly ICoreClientAPI _capi;
 
-        private ICoreClientAPI API => _capi;
-        public ParticlesManager(ICoreClientAPI capi)
+        public ParticlesManager(ModSystem modSystem)
         {
-            _capi = capi;
+            _capi = modSystem.API;
         }
         private Block[] GetBlocks(string wildcard)
         {
-            return API.World.SearchBlocks(wildcard);
+            return _capi.World.SearchBlocks(wildcard);
         }
         public void RemoveParticles(string wildcard)
         {
