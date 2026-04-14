@@ -3,11 +3,14 @@ name: Build and Package Mod
 on:
   push:
     branches: [ main ]
-  workflow_dispatch: # Allows manual trigger from GitHub UI
+    tags: [ 'v*' ] # Triggers release logic when a tag is pushed
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to create/upload to a GitHub Release
 
     steps:
       - name: Checkout Code
@@ -18,8 +21,6 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      # Vintage Story mods need the API DLLs to compile.
-      # This step assumes you have put the DLLs in a /lib folder in your repo.
       - name: Verify Dependencies
         run: |
           if [ ! -f "lib/VintagestoryAPI.dll" ]; then
@@ -30,19 +31,27 @@ jobs:
       - name: Restore Dependencies
         run: dotnet restore
 
-      # We run the Cake project using the correct argument separator '--'
       - name: Run ZZCakeBuild
         run: |
           dotnet run --project ZZCakeBuild/CakeBuild.csproj -- --target=Default --configuration=Release
         env:
           DOTNET_NOLOGO: true
-          # Some Cake scripts look for this env var to find the game path
           VINTAGE_STORY: ${{ github.workspace }}/lib 
 
+      # Always upload the artifact so you can test builds without making a formal release
       - name: Upload Mod Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ParticlesPlus-Build
-          # Matches the folder your Cake script creates
           path: Releases/*.zip
           retention-days: 7
+
+      # 2. Add to GitHub Releases (Only runs when you push a tag like v1.0.2)
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Releases/*.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
