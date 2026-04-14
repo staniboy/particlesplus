@@ -18,13 +18,13 @@ namespace ParticlesPlus.GUI
         }
         private void SetDefaultPreset()
         {
-            string initialPresetKey = _modConfig.Presets.Keys.FirstOrDefault();
+            string defaultPresetKey = _modConfig.Presets.Keys.FirstOrDefault();
 
-            if (!string.IsNullOrEmpty(initialPresetKey))
+            if (!string.IsNullOrEmpty(defaultPresetKey))
             {
-                _selectedComboKey = initialPresetKey;
-                _selectedPresetKey = initialPresetKey;
-                _selectedPreset = _modConfig.Presets[initialPresetKey];
+                _selectedComboKey = defaultPresetKey;
+                _selectedPresetKey = defaultPresetKey;
+                _selectedPreset = _modConfig.Presets[defaultPresetKey];
             }
             else
             {
