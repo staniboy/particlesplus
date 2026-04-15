@@ -7,24 +7,26 @@ namespace ParticlesPlus.GUI;
 
 public class GuiSystem
 {
-    private bool _showGui = false;
+
     private readonly ModSystem _modSystem;
-    private readonly ImGuiModSystem _guiSystem;
-    private ICoreClientAPI API => _modSystem.capi;
+    private ICoreClientAPI API => _modSystem.API;
+    private ModConfig ModConfig => _modSystem.ModConfig;
+    private ImGuiModSystem ImGuiSystem => API.ModLoader.GetModSystem<ImGuiModSystem>();
+
 
     // GUI Content
+    private bool _showGui = false;
     private GuiPresetContent _guiPresetContent;
 
     public GuiSystem(ModSystem modSystem)
     {
         _modSystem = modSystem;
-        _guiSystem = API.ModLoader.GetModSystem<ImGuiModSystem>();
 
-        if (_guiSystem == null) return;
+        if (ImGuiSystem == null) return;
 
-        _guiPresetContent = new(_modSystem.modConfig);
+        _guiPresetContent = new(ModConfig);
 
-        _guiSystem.Draw += DrawMenu;
+        ImGuiSystem.Draw += DrawMenu;
         API.Input.RegisterHotKey("particlesplusgui", "Toggle Particles Plus GUI", GlKeys.P, HotkeyType.GUIOrOtherControls, ctrlPressed: false);
         API.Input.RegisterHotKey("particlesplusglobal", "Toggle Particles Plus Global", GlKeys.P, HotkeyType.GUIOrOtherControls, ctrlPressed: true);
         API.Input.SetHotKeyHandler("particlesplusgui", _ =>
@@ -34,7 +36,7 @@ public class GuiSystem
         });
         API.Input.SetHotKeyHandler("particlesplusglobal", _ =>
         {
-            modSystem.modConfig.ToggleGlobal();
+            ModConfig.ToggleGlobal();
             return true;
         });
     }
@@ -43,7 +45,7 @@ public class GuiSystem
     {
         if (!_showGui) return CallbackGUIStatus.Closed;
 
-        var modConfig = _modSystem.modConfig;
+        var modConfig = ModConfig;
 
         if (ImGui.Begin("Particles Plus", ref _showGui, ImGuiWindowFlags.AlwaysAutoResize))
         {
