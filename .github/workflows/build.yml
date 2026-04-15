@@ -55,6 +55,7 @@ jobs:
       - name: Upload Mod Artifact
         uses: actions/upload-artifact@v4
         with:
+          name: particlesplus_${{ env.MOD_VERSION }}.zip
           # Uses the dynamic version in the artifact name
           path: Releases/particlesplus_${{ env.MOD_VERSION }}.zip
           retention-days: 7
