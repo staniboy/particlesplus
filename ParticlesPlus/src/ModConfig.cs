@@ -40,7 +40,7 @@ namespace ParticlesPlus
 
                 if (loadedConfig == null) // If config doesn't exist create and write default one
                 {
-                    LoadDefaultModConfig();
+                    SetAsCurrentModConfig(GetDefaultConfig());
                 }
                 else
                 {
@@ -81,11 +81,19 @@ namespace ParticlesPlus
             ChatMessanger.ShowMessage(Constants.ChatMessages.GlobalStatus + Global, MessageType.Success);
             return Global;
         }
-        private void LoadDefaultModConfig()
+
+        private ModConfig GetDefaultConfig()
         {
             var defaultConfigAsset = API.Assets.Get(new AssetLocation(_modSystem.Mod.Info.ModID, "config/particlesplus.json"));
             string defaultConfigText = defaultConfigAsset.ToText();
-            SetAsCurrentModConfig(JsonConvert.DeserializeObject<ModConfig>(defaultConfigText));
+            ModConfig defaultModConfig = JsonConvert.DeserializeObject<ModConfig>(defaultConfigText);
+            return defaultModConfig;
+        }
+        public void LoadDefaultModConfig()
+        {
+            if (Global) RemoveEnabledParticles();
+            SetAsCurrentModConfig(GetDefaultConfig());
+            if (Global) ApplyEnabledParticles();
             WriteConfig();
         }
         private void SetAsCurrentModConfig(ModConfig modConfig)
