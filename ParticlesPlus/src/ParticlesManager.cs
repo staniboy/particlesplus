@@ -5,17 +5,13 @@ using Vintagestory.API.Common;
 
 namespace ParticlesPlus
 {
-    public class ParticlesManager
+    public class ParticlesManager(ModSystem modSystem)
     {
-        private readonly ICoreClientAPI _capi;
+        private ICoreClientAPI API => modSystem.API;
 
-        public ParticlesManager(ICoreClientAPI capi)
-        {
-            _capi = capi;
-        }
         private Block[] GetBlocks(string wildcard)
         {
-            return _capi.World.SearchBlocks(wildcard);
+            return API.World.SearchBlocks(wildcard);
         }
         public void RemoveParticles(string wildcard)
         {
