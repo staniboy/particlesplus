@@ -72,6 +72,11 @@ public class GuiSystem
                     {
                         modConfig.ToggleGlobal();
                     }
+                    // Load Default Config
+                    if (ImGui.Button("Load Default Config"))
+                    {
+                        modConfig.LoadDefaultModConfig();
+                    }
                     ImGui.EndTabItem();
                 }
                 ImGui.EndTabBar();
