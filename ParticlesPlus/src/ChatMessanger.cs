@@ -10,7 +10,7 @@ namespace ParticlesPlus
     public class ChatMessanger
     {
         private readonly ModSystem _modSystem;
-        private ICoreClientAPI _api => _modSystem.API;
+        private ICoreClientAPI API => _modSystem.API;
         private string ModName => _modSystem.Mod.Info.Name;
 
         private readonly string successColor = "#5CAE63";
@@ -33,7 +33,7 @@ namespace ParticlesPlus
 
             string message = $"[{ModName}]: {messageBody}";
 
-            _api.ShowChatMessage($"<strong><font color='{messageColor}'>{message}</font></strong>");
+            API.ShowChatMessage($"<strong><font color='{messageColor}'>{message}</font></strong>");
         }
     }
 }

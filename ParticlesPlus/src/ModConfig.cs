@@ -24,7 +24,7 @@ namespace ParticlesPlus
         private readonly ModSystem _modSystem;
 
         private ICoreClientAPI API => _modSystem.API;
-        private ParticlesManager _particlesManager => _modSystem.ParticlesManager;
+        private ParticlesManager ParticlesManager => _modSystem.ParticlesManager;
         private string ConfigFileName => $"{_modSystem.Mod.Info.ModID}.json";
 
         public ModConfig() { }
@@ -108,13 +108,13 @@ namespace ParticlesPlus
 
             if (targetPreset.Enabled)
             {
-                _particlesManager.RemoveParticles(targetPreset.Wildcard);
+                ParticlesManager.RemoveParticles(targetPreset.Wildcard);
             }
 
             if (updatedPreset.Enabled && Global)
             {
                 AdvancedParticleProperties[] particles = GetConfigParticles(updatedPreset.Particles);
-                _particlesManager.AddParticles(updatedPreset.Wildcard, particles);
+                ParticlesManager.AddParticles(updatedPreset.Wildcard, particles);
             }
 
             Presets[key] = updatedPreset;
@@ -129,7 +129,7 @@ namespace ParticlesPlus
                 return false;
             }
 
-            _particlesManager.RemoveParticles(Presets[key].Wildcard);
+            ParticlesManager.RemoveParticles(Presets[key].Wildcard);
             Presets.Remove(key);
             WriteConfig();
 
@@ -147,7 +147,7 @@ namespace ParticlesPlus
             {
                 if (!preset.Value.Enabled) continue;
                 AdvancedParticleProperties[] particles = GetConfigParticles(preset.Value.Particles);
-                _particlesManager.AddParticles(preset.Value.Wildcard, particles);
+                ParticlesManager.AddParticles(preset.Value.Wildcard, particles);
             }
         }
         public void RemoveEnabledParticles()
@@ -156,7 +156,7 @@ namespace ParticlesPlus
             {
                 if (!preset.Value.Enabled) continue;
 
-                _particlesManager.RemoveParticles(preset.Value.Wildcard);
+                ParticlesManager.RemoveParticles(preset.Value.Wildcard);
             }
         }
         private AdvancedParticleProperties[] GetConfigParticles(string particlesKey)
