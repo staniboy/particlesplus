@@ -28,7 +28,8 @@ namespace ParticlesPlus
         private ParticlesManager _particlesManager;
         private string ConfigFileName => $"{_modSystem.Mod.Info.ModID}.json";
 
-        public ModConfig() { }
+        [JsonConstructor]
+        private ModConfig() { }
         public ModConfig(ModSystem modSystem)
         {
             _modSystem = modSystem;
