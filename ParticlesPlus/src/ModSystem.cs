@@ -22,8 +22,7 @@ namespace ParticlesPlus
             ModConfig = new(this);
             ChatMessanger = new(this);
             ParticlesManager = new(this);
-            GUI = new(this);
-
+            api.Event.BlockTexturesLoaded += OnBlockTexturesLoaded;
             API.Input.RegisterHotKey(
                     "toggleParticles",
                     "Toggle Particles Plus",
@@ -38,14 +37,20 @@ namespace ParticlesPlus
             base.StartClientSide(API);
         }
 
+        private void OnBlockTexturesLoaded()
+        {
+            GUI = new MainGuiDialog(this);
+        }
+
         public override void AssetsFinalize(ICoreAPI api)
         {
             ModConfig.Initialize();
+
             api.Logger.Event($"Started [{Mod.Info.Name}] mod");
         }
         private bool OnHotkeyToggleParticles(KeyCombination keyComb)
         {
-            GuiElementSwitch globalSwitch = GUI.Composers["single"].GetSwitch("globalSwitch");
+            GuiElementSwitch globalSwitch = GUI.SingleComposer.GetSwitch("globalSwitch");
 
             globalSwitch.SetValue(!ModConfig.Global);
             ModConfig.SetGlobal(!ModConfig.Global);
