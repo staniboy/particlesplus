@@ -6,9 +6,11 @@ namespace ParticlesPlus
 {
     public class ModSystem : Vintagestory.API.Common.ModSystem
     {
-        public ModConfig modConfig;
-        public ICoreClientAPI capi;
-        private GuiSystem guiSystem;
+        public ICoreClientAPI API { get; private set; }
+        public ModConfig ModConfig { get; private set; }
+        public ChatMessanger ChatMessanger { get; private set; }
+        public ParticlesManager ParticlesManager { get; private set; }
+        public GuiSystem GUI { get; private set; }
 
 
         public override bool ShouldLoad(EnumAppSide forSide)
@@ -17,11 +19,13 @@ namespace ParticlesPlus
         }
         public override void StartClientSide(ICoreClientAPI api)
         {
-            capi = api;
-            modConfig = new(this);
-            guiSystem = new GuiSystem(this);
+            API = api;
+            ParticlesManager = new(this);
+            ModConfig = new(this);
+            GUI = new(this);
+            ChatMessanger = new(this);
 
-            base.StartClientSide(capi);
+            base.StartClientSide(API);
         }
         public override void AssetsFinalize(ICoreAPI api)
         {
