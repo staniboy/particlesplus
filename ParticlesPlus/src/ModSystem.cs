@@ -25,6 +25,7 @@ namespace ParticlesPlus
         }
         public override void AssetsFinalize(ICoreAPI api)
         {
+            ModConfig.Initialize();
             api.Logger.Event($"Started [{Mod.Info.Name}] mod");
         }
     }
