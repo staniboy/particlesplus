@@ -87,7 +87,8 @@ namespace ParticlesPlus
             {
                 RemoveEnabledParticles();
             }
-            _chatMessanger.ShowMessage(Constants.ChatMessages.GlobalStatus + Global, MessageType.Success);
+            WriteConfig();
+            ChatMessanger.ShowMessage(Constants.ChatMessages.GlobalStatus + Global, MessageType.Success);
             return Global;
         }
         private void CopyFrom(ModConfig modConfig)
