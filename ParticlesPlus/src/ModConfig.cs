@@ -66,7 +66,7 @@ namespace ParticlesPlus
                 try
                 {
                     string configPath = API.GetOrCreateDataPath("ModConfig") + "/" + ConfigFileName;
-                    File.Move(configPath, Path.ChangeExtension(configPath, ".bad.json"));
+                    File.Move(configPath, Path.ChangeExtension(configPath, ".bad.json"), overwrite: true);
                 }
                 catch { /* best effort */ }
 
