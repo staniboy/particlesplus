@@ -24,7 +24,7 @@ namespace ParticlesPlus
         private readonly ModSystem _modSystem;
         private ICoreClientAPI API => _modSystem.API;
         private ParticlesManager ParticlesManager => _modSystem.ParticlesManager;
-        private ChatMessanger ChatMessanger => _modSystem.ChatMessanger;
+        private ChatMessenger ChatMessenger => _modSystem.ChatMessenger;
 
         private string ConfigFileName => $"{_modSystem.Mod.Info.ModID}.json";
 
@@ -78,7 +78,7 @@ namespace ParticlesPlus
                 RemoveEnabledParticles();
             }
             WriteConfig();
-            ChatMessanger.ShowMessage(Constants.ChatMessages.GlobalStatus + Global, MessageType.Success);
+            ChatMessenger.ShowMessege(Constants.ChatMessages.GlobalStatus + Global, MessegeType.Success);
             return Global;
         }
 
@@ -143,7 +143,7 @@ namespace ParticlesPlus
         {
             if (!Presets.TryGetValue(presetKey, out var oldPreset))
             {
-                ChatMessanger.ShowMessage(Constants.ChatMessages.PresetNotFound, MessageType.Error);
+                ChatMessenger.ShowMessege(Constants.ChatMessages.PresetNotFound, MessegeType.Error);
                 return false;
             }
 
@@ -151,7 +151,7 @@ namespace ParticlesPlus
 
             if (string.IsNullOrEmpty(presetName))
             {
-                ChatMessanger.ShowMessage(Constants.ChatMessages.EmptyName, MessageType.Error);
+                ChatMessenger.ShowMessege(Constants.ChatMessages.EmptyName, MessegeType.Error);
                 return false;
             }
 
@@ -159,7 +159,7 @@ namespace ParticlesPlus
             {
                 if (Presets.ContainsKey(presetName))
                 {
-                    ChatMessanger.ShowMessage(Constants.ChatMessages.DuplicateNameError, MessageType.Error);
+                    ChatMessenger.ShowMessege(Constants.ChatMessages.DuplicateNameError, MessegeType.Error);
                     return false;
                 }
                 Presets.Remove(presetKey);
@@ -170,7 +170,7 @@ namespace ParticlesPlus
             Presets[keyToUpdate] = updatedPreset with { };
             WriteConfig();
 
-            ChatMessanger.ShowMessage(Constants.ChatMessages.PresetSaved, MessageType.Success);
+            ChatMessenger.ShowMessege(Constants.ChatMessages.PresetSaved, MessegeType.Success);
 
             return true;
         }
@@ -178,7 +178,7 @@ namespace ParticlesPlus
         {
             if (string.IsNullOrEmpty(key) || !Presets.TryGetValue(key, out var config))
             {
-                ChatMessanger.ShowMessage(Constants.ChatMessages.PresetNotFound, MessageType.Error);
+                ChatMessenger.ShowMessege(Constants.ChatMessages.PresetNotFound, MessegeType.Error);
                 return false;
             }
 
@@ -190,7 +190,7 @@ namespace ParticlesPlus
             Presets.Remove(key);
             WriteConfig();
 
-            ChatMessanger.ShowMessage(Constants.ChatMessages.PresetRemoved, MessageType.Success);
+            ChatMessenger.ShowMessege(Constants.ChatMessages.PresetRemoved, MessegeType.Success);
             return true;
         }
         public void WriteConfig()

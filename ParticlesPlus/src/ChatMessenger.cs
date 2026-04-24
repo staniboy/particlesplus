@@ -2,12 +2,12 @@
 
 namespace ParticlesPlus
 {
-    public enum MessageType
+    public enum MessegeType
     {
         Error,
         Success
     }
-    public class ChatMessanger(ModSystem modSystem)
+    public class ChatMessenger(ModSystem modSystem)
     {
         private readonly ModSystem _modSystem = modSystem;
         private ICoreClientAPI API => _modSystem.API;
@@ -16,12 +16,12 @@ namespace ParticlesPlus
         private readonly string successColor = "#5CAE63";
         private readonly string errorColor = "#D75F4C";
 
-        public void ShowMessage(string messageBody, MessageType type)
+        public void ShowMessege(string messageBody, MessegeType type)
         {
             string messageColor = type switch
             {
-                MessageType.Success => successColor,
-                MessageType.Error => errorColor,
+                MessegeType.Success => successColor,
+                MessegeType.Error => errorColor,
                 _ => "#FFFFFF",
             };
 

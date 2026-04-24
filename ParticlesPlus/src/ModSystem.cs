@@ -8,7 +8,7 @@ namespace ParticlesPlus
     {
         public ICoreClientAPI API { get; private set; }
         public ModConfig ModConfig { get; private set; }
-        public ChatMessanger ChatMessanger { get; private set; }
+        public ChatMessenger ChatMessenger { get; private set; }
         public ParticlesManager ParticlesManager { get; private set; }
         public GuiSystem GUI { get; private set; }
 
@@ -23,7 +23,7 @@ namespace ParticlesPlus
             ParticlesManager = new(this);
             ModConfig = new(this);
             GUI = new(this);
-            ChatMessanger = new(this);
+            ChatMessenger = new(this);
 
             base.StartClientSide(API);
         }
