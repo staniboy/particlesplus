@@ -1,53 +1,63 @@
 {
   "Version": 1,
   "Global": true,
-  "Presets": {
-    "Terra Preta": {
-      "Enabled": true,
-      "Wildcard": "soil-high-*",
-      "Particles": "Soil Smoke"
+    "Presets": {
+        "Terra Preta": {
+            "Enabled": true,
+            "Wildcard": "soil-high-*",
+            "Particles": "Soil Smoke"
+        },
+        "High Fertility Soil": {
+            "Enabled": true,
+            "Wildcard": "soil-compost-*",
+            "Particles": "Soil Smoke"
+        },
+        "Peat": {
+            "Enabled": false,
+            "Wildcard": "peat-*",
+            "Particles": "Soil Smoke"
+        },
+        "Blue Clay": {
+            "Enabled": false,
+            "Wildcard": "rawclay-blue-*",
+            "Particles": "Soil Smoke"
+        },
+        "Red Clay": {
+            "Enabled": false,
+            "Wildcard": "rawclay-red-*",
+            "Particles": "Soil Smoke"
+        },
+        "Cracked Vessels": {
+            "Enabled": true,
+            "Wildcard": "lootvessel-*",
+            "Particles": "Cursed Smoke"
+        },
+        "Bony Soil": {
+            "Enabled": true,
+            "Wildcard": "bonysoil",
+            "Particles": "Cursed Smoke"
+        },
+        "Resin": {
+            "Enabled": true,
+            "Wildcard": "log-resin-*",
+            "Particles": "Resin Drip"
+        },
+        "Meteoric Iron": {
+            "Enabled": true,
+            "Wildcard": "meteorite-iron",
+            "Particles": "Meteorite Sparks"
+        },
+        "Loose Ores": {
+            "Enabled": false,
+            "Wildcard": "looseores-*",
+            "Particles": "Cursed Smoke"
+        },
+        "Copper": {
+            "Enabled": false,
+            "Wildcard": "@ore-(.*)-(malachite|nativecopper)-(.*)",
+            "Particles": "Meteorite Sparks"
+        }
     },
-    "High Fertility Soil": {
-      "Enabled": true,
-      "Wildcard": "soil-compost-*",
-      "Particles": "Soil Smoke"
-    },
-    "Peat": {
-      "Enabled": false,
-      "Wildcard": "peat-*",
-      "Particles": "Soil Smoke"
-    },
-    "Blue Clay": {
-      "Enabled": false,
-      "Wildcard": "rawclay-blue-*",
-      "Particles": "Soil Smoke"
-    },
-    "Red Clay": {
-      "Enabled": false,
-      "Wildcard": "rawclay-red-*",
-      "Particles": "Soil Smoke"
-    },
-    "Cracked Vessels": {
-      "Enabled": true,
-      "Wildcard": "lootvessel-*",
-      "Particles": "Cursed Smoke"
-    },
-    "Bony Soil": {
-      "Enabled": true,
-      "Wildcard": "bonysoil",
-      "Particles": "Cursed Smoke"
-    },
-    "Resin": {
-      "Enabled": true,
-      "Wildcard": "log-resin-*",
-      "Particles": "Resin Drip"
-    },
-    "Meteoric Iron": {
-      "Enabled": true,
-      "Wildcard": "meteorite-iron",
-      "Particles": "Meteorite Sparks"
-    }
-  },
   "Particles": {
     "Resin Drip": [
       {
