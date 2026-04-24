@@ -127,7 +127,7 @@ namespace ParticlesPlus.GUI
                 if (ImGui.Button("Delete"))
                 {
                     _guiSystem.confirmModal.Show(
-                        $"Delete '{_selectedPresetKey}'?",
+                        $"Delete '{_selectedPresetKey}' preset?",
                         onConfirm: () =>
                         {
                             _modConfig.RemovePreset(_selectedComboKey);
