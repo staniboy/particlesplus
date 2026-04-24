@@ -1,0 +1,18 @@
+name: Bug Report
+description: Report a bug in ParticlesPlus
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      placeholder: What happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log File
+      description: Paste your `Vintagestory/Logs/client-main.log` contents here, or drag and drop the file.
+    validations:
+      required: true
