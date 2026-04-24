@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 
@@ -38,26 +39,39 @@ namespace ParticlesPlus
             {
                 var loadedConfig = API.LoadModConfig<ModConfig>(ConfigFileName);
 
-                if (loadedConfig == null) // If config doesn't exist create and write default one
+                if (loadedConfig == null)
                 {
                     SetAsCurrentModConfig(GetDefaultConfig());
                 }
                 else
                 {
-                    if (loadedConfig.Version == 0) // If version mismatch throw an error
+                    if (loadedConfig.Version == 0)
                     {
                         string errorMsg = $"[{modSystem.Mod.Info.Name}] Config file is missing required 'Version' field (old or malformed config). Please regenerate or update it.";
                         API.Logger.Error(errorMsg);
                         throw new InvalidOperationException(errorMsg);
                     }
-                    SetAsCurrentModConfig(loadedConfig); // Otherwise load existing config
+                    SetAsCurrentModConfig(loadedConfig);
                 }
             }
-            catch (Exception e) // Catch anything else
+            catch (InvalidOperationException)
+            {
+                throw;
+            }
+            catch (Exception e)
             {
                 string errorMsg = $"[{modSystem.Mod.Info.Name}] Failed to load config file: {e.Message}";
                 API.Logger.Error(errorMsg);
-                throw new InvalidOperationException(errorMsg, e);
+
+                try
+                {
+                    string configPath = API.GetOrCreateDataPath("ModConfig") + "/" + ConfigFileName;
+                    File.Move(configPath, Path.ChangeExtension(configPath, ".bad.json"));
+                }
+                catch { /* best effort */ }
+
+                SetAsCurrentModConfig(GetDefaultConfig());
+                WriteConfig();
             }
         }
         public void Initialize()
