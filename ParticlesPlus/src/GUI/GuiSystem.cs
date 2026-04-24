@@ -12,6 +12,7 @@ public class GuiSystem
     private ICoreClientAPI API => _modSystem.API;
     private ModConfig ModConfig => _modSystem.ModConfig;
     private ImGuiModSystem ImGuiSystem => API.ModLoader.GetModSystem<ImGuiModSystem>();
+    public readonly ConfirmModal confirmModal = new("Confirm##particlesplus");
 
 
     // GUI Content
@@ -24,7 +25,7 @@ public class GuiSystem
 
         if (ImGuiSystem == null) return;
 
-        _guiPresetContent = new(ModConfig);
+        _guiPresetContent = new(ModConfig, this);
 
         ImGuiSystem.Draw += DrawMenu;
         API.Input.RegisterHotKey("particlesplusgui", "Toggle Particles Plus GUI", GlKeys.P, HotkeyType.GUIOrOtherControls, ctrlPressed: false);
@@ -75,7 +76,13 @@ public class GuiSystem
                     // Load Default Config
                     if (ImGui.Button("Load Default Config"))
                     {
-                        modConfig.LoadDefaultModConfig();
+                        confirmModal.Show(
+                            "Are you sure you want to load the default config? This will overwrite your current config.",
+                            onConfirm: () =>
+                        {
+                            modConfig.LoadDefaultModConfig();
+                            _guiPresetContent.SetDefaultPreset();
+                        });
                     }
                     ImGui.EndTabItem();
                 }
@@ -83,6 +90,7 @@ public class GuiSystem
             }
         }
         ImGui.End();
+        confirmModal.Draw();
         return CallbackGUIStatus.GrabMouse;
     }
 }

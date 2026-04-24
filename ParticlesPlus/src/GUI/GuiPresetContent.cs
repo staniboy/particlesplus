@@ -6,17 +6,19 @@ namespace ParticlesPlus.GUI
     internal class GuiPresetContent
     {
         private readonly ModConfig _modConfig;
+        private readonly GuiSystem _guiSystem;
 
         private string _selectedComboKey = "";
         private string _selectedPresetKey = "";
         private PresetConfig _selectedPreset;
 
-        public GuiPresetContent(ModConfig modConfig)
+        public GuiPresetContent(ModConfig modConfig, GuiSystem guiSystem)
         {
             _modConfig = modConfig;
+            _guiSystem = guiSystem;
             SetDefaultPreset();
         }
-        private void SetDefaultPreset()
+        public void SetDefaultPreset()
         {
             string defaultPresetKey = _modConfig.Presets.Keys.FirstOrDefault();
 
@@ -124,8 +126,13 @@ namespace ParticlesPlus.GUI
                 // Delete
                 if (ImGui.Button("Delete"))
                 {
-                    _modConfig.RemovePreset(_selectedComboKey);
-                    SetDefaultPreset();
+                    _guiSystem.confirmModal.Show(
+                        $"Delete '{_selectedPresetKey}'?",
+                        onConfirm: () =>
+                        {
+                            _modConfig.RemovePreset(_selectedComboKey);
+                            SetDefaultPreset();
+                        });
                 }
             }
             else
